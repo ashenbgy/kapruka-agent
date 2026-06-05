@@ -11,9 +11,18 @@ import { parseSearchProducts } from "@/lib/parsers/search-products";
 import type { ChatApiResponse } from "@/types/chat";
 import type { KaprukaCategory } from "@/types/kapruka";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient(): OpenAI | null {
+  const apiKey =
+    process.env.OPENAI_API_KEY;
+
+  if (!apiKey) {
+    return null;
+  }
+
+  return new OpenAI({
+    apiKey,
+  });
+}
 
 const featuredCategoryNames = [
     "cakes",
@@ -192,7 +201,10 @@ function parseArguments(
 export async function runOpenAIShoppingAgent(
     message: string,
 ): Promise<ChatApiResponse | null> {
-    if (!process.env.OPENAI_API_KEY) {
+    const openai =
+        getOpenAIClient();
+
+    if (!openai) {
         return null;
     }
 
