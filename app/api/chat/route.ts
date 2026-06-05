@@ -30,7 +30,7 @@ const schema = z.object({
 
 type Language =
   | "english"
-  | "tanglish"
+  | "singlish"
   | "sinhala";
 
 const searchAliases = [
@@ -148,7 +148,7 @@ function detectLanguage(
   const normalized =
     message.toLowerCase();
 
-  const tanglishTerms = [
+  const singlishTerms = [
     "amma",
     "nangi",
     "malli",
@@ -163,12 +163,12 @@ function detectLanguage(
   ];
 
   if (
-    tanglishTerms.some(
+    singlishTerms.some(
       (term) =>
         normalized.includes(term),
     )
   ) {
-    return "tanglish";
+    return "singlish";
   }
 
   return "english";
@@ -360,7 +360,7 @@ function greetingMessage(
     ].join("\n");
   }
 
-  if (language === "tanglish") {
+  if (language === "singlish") {
     return [
       "Ayubowan! 👋 Mama oyage Kapruka Gift Mate.",
       "",
@@ -399,7 +399,7 @@ function productResultMessage(
     return `මට Kapruka නිෂ්පාදන ${productCount}ක් හමු වුණා${priceNote}. කැමති ඒවා cart එකට එකතු කරන්න. 🎁`;
   }
 
-  if (language === "tanglish") {
+  if (language === "singlish") {
     return `Kapruka options ${productCount}k hambuna${priceNote}. Kamathi ewa cart ekata add karanna. 🎁`;
   }
 
@@ -458,7 +458,7 @@ export async function POST(
         message:
           language === "sinhala"
             ? "ඔබගේ Kapruka order number එක ඇතුළත් කරන්න. 📦"
-            : language === "tanglish"
+            : language === "singlish"
               ? "Kapruka confirmation email eke order number eka danna. 📦"
               : "Enter the final order number from your Kapruka confirmation email. 📦",
         action:
@@ -490,7 +490,7 @@ export async function POST(
           parsedResult.cities
             .length > 0
             ? language ===
-              "tanglish"
+              "singlish"
               ? "Delivery city match eka hambuna. City eka select karanna. 🚚"
               : "I found matching Kapruka delivery locations. Select the correct city. 🚚"
             : "I could not find that delivery city. Try another spelling.",
@@ -514,7 +514,7 @@ export async function POST(
         message:
           language === "sinhala"
             ? "මෙන්න Kapruka වර්ග කිහිපයක්. එකක් තෝරන්න. 🛍️"
-            : language === "tanglish"
+            : language === "singlish"
               ? "Me Kapruka categories walin ekak select karanna. 🛍️"
               : "Here are some live Kapruka categories. Pick one and I’ll show matching products. 🛍️",
 
@@ -604,7 +604,7 @@ export async function POST(
       message:
         language === "sinhala"
           ? "මට ඔබට Kapruka තෑගි සොයා දෙන්න පුළුවන්. කේක්, මල්, චොකලට් හෝ වර්ග ගැන අහන්න. 😊"
-          : language === "tanglish"
+          : language === "singlish"
             ? "Mama oyata gifts hoyala denna puluwan. Cake, flowers, chocolates, categories gana ahanna. 😊"
             : "I can help you search Kapruka’s live catalog. Ask for cakes, flowers, chocolates, categories, delivery, or order tracking. 😊",
     });

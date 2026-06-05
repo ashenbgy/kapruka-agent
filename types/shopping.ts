@@ -22,7 +22,7 @@ export interface PersonDetails {
 
 export interface ShoppingSession {
   sessionId: string;
-  language: "english" | "tanglish" | "sinhala";
+  language: "english" | "singlish" | "sinhala";
   messages: ChatMessage[];
   cart: CartItem[];
   delivery: DeliveryDetails;
