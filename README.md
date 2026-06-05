@@ -106,7 +106,7 @@ Track my order
 ## Challenge Highlights
 
 * Full-screen conversational shopping experience
-* Sinhala and Tanglish support
+* Sinhala and Singlish support
 * Multi-item cart
 * Delivery-date constraints
 * Gift messaging
