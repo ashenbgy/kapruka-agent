@@ -26,3 +26,27 @@ export interface KaprukaProductDetails {
   imageUrl?: string;
   productUrl?: string;
 }
+
+export interface KaprukaDeliveryCity {
+  name: string;
+  aliases: string[];
+}
+
+export interface KaprukaDeliveryCitySearchResponse {
+  cities: KaprukaDeliveryCity[];
+}
+
+export interface KaprukaDeliveryCheck {
+  city: string;
+  deliveryDate: string;
+  available: boolean;
+  currency?: string;
+  flatRate?: number;
+  warning?: string;
+}
+
+export interface CartDeliveryCheck {
+  productId: string;
+  productName: string;
+  result: KaprukaDeliveryCheck;
+}

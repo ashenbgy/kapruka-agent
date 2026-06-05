@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { listDeliveryCities } from "@/lib/kapruka-tools";
+import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 
 const schema = z.object({
   query: z.string().trim().min(1).max(100),
@@ -12,17 +13,23 @@ export async function POST(request: NextRequest) {
     const body: unknown = await request.json();
     const input = schema.parse(body);
 
-    const result = await listDeliveryCities(
+    const rawResult = await listDeliveryCities(
       input.query,
       input.limit ?? 10,
     );
 
+    const parsedResult =
+      parseDeliveryCities(rawResult);
+
     return NextResponse.json({
       ok: true,
-      result,
+      ...parsedResult,
     });
   } catch (error) {
-    console.error("Delivery-city lookup failed:", error);
+    console.error(
+      "Delivery-city lookup failed:",
+      error,
+    );
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
