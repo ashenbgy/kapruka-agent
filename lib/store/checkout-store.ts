@@ -5,6 +5,7 @@ import type {
   RecipientDetails,
   SenderDetails,
 } from "@/types/checkout";
+import type { CreateOrderSummary } from "@/lib/parsers/create-order";
 
 interface CheckoutState {
   city: string;
@@ -18,8 +19,11 @@ interface CheckoutState {
   giftMessage: string;
 
   checkoutConfirmed: boolean;
+
   payLink: string;
-  orderNumber: string;
+  orderRef: string;
+  expiresAt: string;
+  orderSummary?: CreateOrderSummary;
 
   setDeliveryDetails: (
     city: string,
@@ -43,7 +47,9 @@ interface CheckoutState {
 
   setOrderResult: (input: {
     payLink: string;
-    orderNumber: string;
+    orderRef: string;
+    expiresAt: string;
+    orderSummary: CreateOrderSummary;
   }) => void;
 
   resetCheckout: () => void;
@@ -80,8 +86,11 @@ export const useCheckoutStore =
     giftMessage: "",
 
     checkoutConfirmed: false,
+
     payLink: "",
-    orderNumber: "",
+    orderRef: "",
+    expiresAt: "",
+    orderSummary: undefined,
 
     setDeliveryDetails: (
       city,
@@ -132,11 +141,15 @@ export const useCheckoutStore =
 
     setOrderResult: ({
       payLink,
-      orderNumber,
+      orderRef,
+      expiresAt,
+      orderSummary,
     }) =>
       set({
         payLink,
-        orderNumber,
+        orderRef,
+        expiresAt,
+        orderSummary,
       }),
 
     resetCheckout: () =>
@@ -152,7 +165,10 @@ export const useCheckoutStore =
         giftMessage: "",
 
         checkoutConfirmed: false,
+
         payLink: "",
-        orderNumber: "",
+        orderRef: "",
+        expiresAt: "",
+        orderSummary: undefined,
       }),
   }));

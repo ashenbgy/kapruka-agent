@@ -49,15 +49,55 @@ export async function checkDelivery(input: {
   return callKaprukaTool("kapruka_check_delivery", input);
 }
 
-export async function createOrder(input: {
-  cart: unknown[];
-  recipient: Record<string, unknown>;
-  delivery: Record<string, unknown>;
-  sender: Record<string, unknown>;
-  gift_message?: string;
-  currency?: Currency;
-}) {
-  return callKaprukaTool("kapruka_create_order", input);
+export type CheckoutCurrency =
+  | "LKR"
+  | "USD"
+  | "GBP"
+  | "AUD"
+  | "CAD"
+  | "EUR";
+
+export interface CreateOrderInput {
+  cart: {
+    product_id: string;
+    quantity: number;
+    icing_text?: string | null;
+  }[];
+
+  recipient: {
+    name: string;
+    phone: string;
+  };
+
+  delivery: {
+    address: string;
+    city: string;
+    location_type:
+      | "house"
+      | "apartment"
+      | "office"
+      | "other";
+    date: string;
+    instructions?: string | null;
+  };
+
+  sender: {
+    name: string;
+    anonymous: boolean;
+  };
+
+  gift_message?: string | null;
+  currency: CheckoutCurrency;
+  response_format: "json";
+}
+
+export async function createOrder(
+  input: CreateOrderInput,
+) {
+  return callKaprukaTool(
+    "kapruka_create_order",
+    input,
+  );
 }
 
 export async function trackOrder(order_number: string) {
