@@ -55,7 +55,7 @@ const searchAliases = [
       "mal tikak",
       "මල්",
     ],
-    query: "flowers",
+    query: "flower",
   },
   {
     terms: [
@@ -243,28 +243,14 @@ function detectSearchQuery(
   const normalized =
     message.toLowerCase();
 
-  const queries =
-    searchAliases
-      .filter((alias) =>
-        alias.terms.some(
-          (term) =>
-            normalized.includes(
-              term,
-            ),
-        ),
-      )
-      .map(
-        (alias) =>
-          alias.query,
-      );
+  const matchedAlias =
+    searchAliases.find((alias) =>
+      alias.terms.some((term) =>
+        normalized.includes(term),
+      ),
+    );
 
-  const uniqueQueries = [
-    ...new Set(queries),
-  ];
-
-  return uniqueQueries.length > 0
-    ? uniqueQueries.join(" ")
-    : null;
+  return matchedAlias?.query ?? null;
 }
 
 function detectMaxPrice(
@@ -312,17 +298,55 @@ function extractDeliveryCityQuery(
   return null;
 }
 
+const featuredCategoryNames = [
+  "cakes",
+  "flowers",
+  "Chocolates",
+  "combopack",
+  "Fruits",
+  "Giftset",
+  "Personalized Gifts",
+  "GreetingCards",
+  "KidsToys",
+  "BabyItems",
+  "Perfumes",
+  "Books",
+  "birthday",
+  "anniversary",
+  "graduation",
+  "wedding",
+  "samedaydelivery",
+  "bestsellers",
+];
+
 function getFeaturedCategories(
   categories: KaprukaCategory[],
 ) {
+  const featuredOrder =
+    new Map(
+      featuredCategoryNames.map(
+        (name, index) => [
+          name.toLowerCase(),
+          index,
+        ],
+      ),
+    );
+
   return categories
-    .filter(
-      (category) =>
-        !hiddenCategories.has(
-          category.name.toLowerCase(),
-        ),
+    .filter((category) =>
+      featuredOrder.has(
+        category.name.toLowerCase(),
+      ),
     )
-    .slice(0, 24);
+    .sort(
+      (first, second) =>
+        (featuredOrder.get(
+          first.name.toLowerCase(),
+        ) ?? 999) -
+        (featuredOrder.get(
+          second.name.toLowerCase(),
+        ) ?? 999),
+    );
 }
 
 function greetingMessage(
