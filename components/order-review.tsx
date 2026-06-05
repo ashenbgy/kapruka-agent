@@ -37,8 +37,12 @@ export function OrderReview({
             0,
         );
 
-    const total =
+    const estimatedTotal =
         subtotal + deliveryFee;
+
+    const displayedTotal =
+        checkout.orderSummary?.grand_total ??
+        estimatedTotal;
 
     const canCreateCheckout =
         items.length > 0 &&
@@ -288,13 +292,21 @@ export function OrderReview({
 
                         <PriceRow
                             label="Delivery fee"
-                            value={deliveryFee}
+                            value={
+                                checkout.orderSummary
+                                ?.delivery_fee ??
+                                deliveryFee
+                            }
                         />
 
                         <div className="border-t border-zinc-800 pt-3">
                             <PriceRow
-                                label="Estimated total"
-                                value={total}
+                                label={
+                                    checkout.orderSummary
+                                        ? "Checkout quote"
+                                        : "Estimated total"
+                                }
+                                value={displayedTotal}
                                 important
                             />
                         </div>
@@ -347,13 +359,6 @@ export function OrderReview({
                 )}
 
                 <PayLinkCard />
-
-                <p className="text-xs text-zinc-500">
-                    The button is intentionally not
-                    connected yet. Inspect the live
-                    order-creation schema before enabling
-                    real guest checkout.
-                </p>
             </div>
         </section>
     );

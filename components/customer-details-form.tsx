@@ -126,6 +126,10 @@ export function CustomerDetailsForm({
             Delivery address
           </legend>
 
+          <p className="rounded-lg border border-amber-900 bg-amber-950/30 p-3 text-xs text-amber-300">
+            Delivering to: {checkout.city}. Make sure the street address matches this city.
+          </p>
+
           <TextInput
             label="Address line 1"
             value={address.addressLine1}

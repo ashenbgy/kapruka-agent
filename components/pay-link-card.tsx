@@ -34,6 +34,41 @@ export function PayLinkCard() {
         </p>
       )}
 
+      {checkout.orderSummary && (
+        <div className="mt-4 rounded-lg border border-emerald-900 bg-zinc-950/60 p-3 text-sm text-zinc-300">
+          <div className="flex justify-between gap-4">
+            <span>Items</span>
+
+            <span>
+              {checkout.orderSummary.currency}{" "}
+              {checkout.orderSummary.items_total.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="mt-1 flex justify-between gap-4">
+            <span>Delivery</span>
+
+            <span>
+              {checkout.orderSummary.currency}{" "}
+              {checkout.orderSummary.delivery_fee.toLocaleString()}
+            </span>
+          </div>
+
+          <div className="mt-3 flex justify-between gap-4 border-t border-zinc-800 pt-3 font-semibold text-white">
+            <span>Checkout quote</span>
+
+            <span>
+              {checkout.orderSummary.currency}{" "}
+              {checkout.orderSummary.grand_total.toLocaleString()}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <p className="mt-3 text-xs text-amber-300">
+        The Kapruka payment page shows the final payable amount. A small difference may appear if Kapruka applies server-side pricing adjustments.
+      </p>
+
       <a
         href={checkout.payLink}
         target="_blank"
