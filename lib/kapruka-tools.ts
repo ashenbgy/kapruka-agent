@@ -100,8 +100,14 @@ export async function createOrder(
   );
 }
 
-export async function trackOrder(order_number: string) {
-  return callKaprukaTool("kapruka_track_order", {
-    order_number,
-  });
+export async function trackOrder(
+  order_number: string,
+) {
+  return callKaprukaTool(
+    "kapruka_track_order",
+    {
+      order_number,
+      response_format: "json",
+    },
+  );
 }
