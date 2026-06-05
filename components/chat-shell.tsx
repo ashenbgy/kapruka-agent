@@ -10,6 +10,8 @@ import type {
     ChatApiResponse,
     ChatMessage,
 } from "@/types/chat";
+import { OrderTrackingForm } from "@/components/order-tracking-form";
+import { useCheckoutStore } from "@/lib/store/checkout-store";
 
 const initialMessages: ChatMessage[] = [
     {
@@ -24,10 +26,13 @@ const initialMessages: ChatMessage[] = [
 ];
 
 const quickPrompts = [
-    "Find a birthday cake",
+    "Find a birthday cake under Rs. 8000",
     "Show me flowers for Amma",
-    "Find chocolates",
-    "Recommend a gift hamper",
+    "What categories do you have?",
+    "Can you deliver to Kandy?",
+    "Track my order",
+    "අම්මාට මල් බලන්න",
+    "කේක් බලන්න",
 ];
 
 export function ChatShell() {
@@ -47,6 +52,12 @@ export function ChatShell() {
 
     const { addItem } =
         useCartStore();
+
+    const {
+        city: selectedCity,
+        deliveryDate,
+        setDeliveryDetails,
+    } = useCheckoutStore();
 
     async function sendMessage(
         message: string,
@@ -106,13 +117,18 @@ export function ChatShell() {
                 );
             }
 
-            const assistantMessage: ChatMessage =
-            {
+            const assistantMessage: ChatMessage = {
                 id: crypto.randomUUID(),
                 role: "assistant",
                 text: data.message,
-                products: data.products,
-                categories: data.categories,
+                products:
+                    data.products,
+                categories:
+                    data.categories,
+                deliveryCities:
+                    data.deliveryCities,
+                action:
+                    data.action,
             };
 
             setMessages((current) => [
@@ -138,6 +154,30 @@ export function ChatShell() {
         event.preventDefault();
 
         void sendMessage(input);
+    }
+
+    function selectDeliveryCity(
+        cityName: string,
+        ) {
+        setDeliveryDetails(
+            cityName,
+            deliveryDate,
+        );
+
+        const confirmationMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            text: [
+            `✓ ${cityName} selected as your delivery city. 🚚`,
+            "",
+            "Add your products to the cart, then continue to delivery to choose a date and confirm availability.",
+            ].join("\n"),
+        };
+
+        setMessages((current) => [
+            ...current,
+            confirmationMessage,
+        ]);
     }
 
     return (
@@ -193,6 +233,48 @@ export function ChatShell() {
                                             </button>
                                         ),
                                     )}
+                                </div>
+                            )}
+
+                        {message.deliveryCities &&
+                            message.deliveryCities.length > 0 && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                {message.deliveryCities.map(
+                                    (city) => {
+                                    const isSelected =
+                                        selectedCity === city.name;
+
+                                    return (
+                                        <button
+                                        key={city.name}
+                                        type="button"
+                                        disabled={isSelected}
+                                        onClick={() =>
+                                            selectDeliveryCity(
+                                            city.name,
+                                            )
+                                        }
+                                        className={`rounded-full border px-4 py-2 text-sm ${
+                                            isSelected
+                                            ? "border-emerald-600 bg-emerald-950 text-emerald-300"
+                                            : "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-emerald-500 hover:text-white"
+                                        }`}
+                                        >
+                                        {isSelected
+                                            ? "✓"
+                                            : "📍"}{" "}
+                                        {city.name}
+                                        </button>
+                                    );
+                                    },
+                                )}
+                                </div>
+                            )}
+
+                        {message.action ===
+                            "show_tracking" && (
+                                <div className="mt-4">
+                                    <OrderTrackingForm />
                                 </div>
                             )}
                     </article>

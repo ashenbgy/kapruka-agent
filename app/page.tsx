@@ -2,7 +2,6 @@
 
 import { ChatShell } from "@/components/chat-shell";
 import { CartDrawer } from "@/components/cart-drawer";
-import { OrderTrackingForm } from "@/components/order-tracking-form";
 import { useCartStore } from "@/lib/store/cart-store";
 
 export default function Home() {
@@ -42,10 +41,6 @@ export default function Home() {
         </header>
 
         <ChatShell />
-
-        <section className="mt-6">
-          <OrderTrackingForm />
-        </section>
       </div>
 
       <CartDrawer />

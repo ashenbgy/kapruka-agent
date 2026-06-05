@@ -1,7 +1,12 @@
 import type {
   KaprukaCategory,
+  KaprukaDeliveryCity,
   KaprukaSearchProduct,
 } from "@/types/kapruka";
+
+export type ChatAction =
+  | "show_tracking"
+  | "none";
 
 export interface ChatMessage {
   id: string;
@@ -9,6 +14,8 @@ export interface ChatMessage {
   text: string;
   products?: KaprukaSearchProduct[];
   categories?: KaprukaCategory[];
+  deliveryCities?: KaprukaDeliveryCity[];
+  action?: ChatAction;
 }
 
 export interface ChatApiResponse {
@@ -16,5 +23,7 @@ export interface ChatApiResponse {
   message?: string;
   products?: KaprukaSearchProduct[];
   categories?: KaprukaCategory[];
+  deliveryCities?: KaprukaDeliveryCity[];
+  action?: ChatAction;
   error?: string;
 }
