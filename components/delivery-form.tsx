@@ -13,6 +13,7 @@ import type {
 
 interface DeliveryFormProps {
   onBack: () => void;
+  onContinue: () => void;
 }
 
 interface DeliveryApiResponse {
@@ -23,6 +24,7 @@ interface DeliveryApiResponse {
 
 export function DeliveryForm({
   onBack,
+  onContinue,
 }: DeliveryFormProps) {
   const { items } = useCartStore();
 
@@ -280,6 +282,7 @@ export function DeliveryForm({
 
               <button
                 type="button"
+                onClick={onContinue}
                 className="mt-4 w-full rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-zinc-950 hover:bg-emerald-400"
               >
                 Continue to customer details

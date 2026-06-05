@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { CustomerDetailsForm } from "@/components/customer-details-form";
 import { DeliveryForm } from "@/components/delivery-form";
+import { OrderReview } from "@/components/order-review";
 import { useCartStore } from "@/lib/store/cart-store";
+
+type CheckoutStep =
+  | "cart"
+  | "delivery"
+  | "details"
+  | "review";
 
 export function CartDrawer() {
   const {
@@ -15,15 +23,17 @@ export function CartDrawer() {
     clearCart,
   } = useCartStore();
 
-  const [step, setStep] = useState<
-    "cart" | "delivery"
-  >("cart");
+  const [step, setStep] =
+    useState<CheckoutStep>("cart");
 
-  const total = items.reduce(
-    (sum, item) =>
-      sum + item.price * item.quantity,
-    0,
-  );
+  const total =
+    items.reduce(
+      (sum, item) =>
+        sum +
+        item.price *
+          item.quantity,
+      0,
+    );
 
   if (!isOpen) {
     return null;
@@ -47,11 +57,37 @@ export function CartDrawer() {
           </button>
         </div>
 
-        {step === "delivery" ? (
+        {step === "delivery" && (
           <DeliveryForm
-            onBack={() => setStep("cart")}
+            onBack={() =>
+              setStep("cart")
+            }
+            onContinue={() =>
+              setStep("details")
+            }
           />
-        ) : (
+        )}
+
+        {step === "details" && (
+          <CustomerDetailsForm
+            onBack={() =>
+              setStep("delivery")
+            }
+            onContinue={() =>
+              setStep("review")
+            }
+          />
+        )}
+
+        {step === "review" && (
+          <OrderReview
+            onBack={() =>
+              setStep("details")
+            }
+          />
+        )}
+
+        {step === "cart" && (
           <>
             <h2 className="text-xl font-bold text-white">
               Your cart 🛒
@@ -110,7 +146,9 @@ export function CartDrawer() {
                         <button
                           type="button"
                           onClick={() =>
-                            removeItem(item.id)
+                            removeItem(
+                              item.id,
+                            )
                           }
                           className="ml-auto text-sm text-red-400"
                         >
@@ -126,7 +164,8 @@ export function CartDrawer() {
                     <span>Total</span>
 
                     <span>
-                      LKR {total.toLocaleString()}
+                      LKR{" "}
+                      {total.toLocaleString()}
                     </span>
                   </div>
 
