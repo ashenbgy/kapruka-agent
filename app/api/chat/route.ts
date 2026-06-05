@@ -33,42 +33,11 @@ const productKeywords = [
   "graduation",
 ];
 
-function detectSearchQuery(
-  message: string,
-): string | null {
-  const normalized =
-    message.toLowerCase();
-
-  const matchedKeywords =
-    productKeywords.filter((keyword) =>
-      normalized.includes(keyword),
-    );
-
-  if (matchedKeywords.length === 0) {
-    return null;
-  }
-
-  return matchedKeywords.join(" ");
-}
-
-function getGreetingResponse(): string {
-  return [
-    "Ayubowan! 👋 I’m your Kapruka Gift Mate.",
-    "",
-    "Tell me what you are shopping for. For example:",
-    "",
-    "• Find a birthday cake under Rs. 8,000",
-    "• Show me flowers for Amma",
-    "• I need a graduation gift",
-    "• Find a chocolate hamper",
-  ].join("\n");
-}
-
 function isGreeting(
   message: string,
 ): boolean {
   const normalized =
-    message.toLowerCase();
+    message.toLowerCase().trim();
 
   return [
     "hi",
@@ -77,6 +46,40 @@ function isGreeting(
     "ayubowan",
     "start",
   ].includes(normalized);
+}
+
+function getGreetingResponse(): string {
+  return [
+    "Ayubowan! 👋 I’m your Kapruka Gift Mate.",
+    "",
+    "Tell me what you are shopping for. You can also include a budget.",
+    "",
+    "Try:",
+    "• Find a birthday cake under Rs. 8,000",
+    "• Show me flowers below 5,000",
+    "• Recommend a chocolate hamper under LKR 10,000",
+  ].join("\n");
+}
+
+function detectSearchQuery(
+  message: string,
+): string | null {
+  const normalized =
+    message.toLowerCase();
+
+  const matchedKeywords =
+    productKeywords.filter(
+      (keyword) =>
+        normalized.includes(keyword),
+    );
+
+  if (
+    matchedKeywords.length === 0
+  ) {
+    return null;
+  }
+
+  return matchedKeywords.join(" ");
 }
 
 function detectMaxPrice(
@@ -122,15 +125,15 @@ export async function POST(
 
     if (searchQuery) {
       const maxPrice =
-      detectMaxPrice(message);
+        detectMaxPrice(message);
 
       const rawResult =
-      await searchProducts({
-        q: searchQuery,
-        currency: "LKR",
-        max_price: maxPrice,
-        in_stock_only: true,
-      });
+        await searchProducts({
+          q: searchQuery,
+          currency: "LKR",
+          max_price: maxPrice,
+          in_stock_only: true,
+        });
 
       const parsedResult =
         parseSearchProducts(
@@ -144,21 +147,21 @@ export async function POST(
         return NextResponse.json({
           ok: true,
           message:
-            "I could not find a matching product right now. Try another keyword such as cake, flowers, chocolates, or hamper. 🌴",
+            "I could not find a matching item right now. Try another keyword or increase your budget. 🌴",
         });
       }
 
       const priceNote =
-      maxPrice !== undefined
-        ? ` under LKR ${maxPrice.toLocaleString()}`
-        : "";
+        maxPrice !== undefined
+          ? ` under LKR ${maxPrice.toLocaleString()}`
+          : "";
 
       return NextResponse.json({
         ok: true,
         message:
-            `I found ${parsedResult.products.length} live Kapruka options${priceNote}. Take a look and add your favourites to the cart. 🎁`,
+          `I found ${parsedResult.products.length} live Kapruka options${priceNote}. Add your favourites to the cart. 🎁`,
         products:
-            parsedResult.products,
+          parsedResult.products,
       });
     }
 
@@ -166,13 +169,13 @@ export async function POST(
       ok: true,
       message:
         [
-          "I can help you discover gifts and products from Kapruka’s live catalog. 😊",
+          "I can help you discover gifts from Kapruka’s live catalog. 😊",
           "",
           "Try asking:",
-          "• Find a birthday cake",
-          "• Show me flowers",
-          "• I need chocolates",
-          "• Recommend a gift hamper",
+          "• Find a birthday cake under Rs. 8,000",
+          "• Show flowers below 5,000",
+          "• Recommend chocolates",
+          "• Find a gift hamper",
         ].join("\n"),
     });
   } catch (error) {
@@ -181,7 +184,9 @@ export async function POST(
       error,
     );
 
-    if (error instanceof z.ZodError) {
+    if (
+      error instanceof z.ZodError
+    ) {
       return NextResponse.json(
         {
           ok: false,
