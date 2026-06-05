@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { ProductCard } from "@/components/product-card";
 import { CartDrawer } from "@/components/cart-drawer";
 import { useCartStore } from "@/lib/store/cart-store";
+import { OrderTrackingForm } from "@/components/order-tracking-form";
 import type { KaprukaSearchProduct } from "@/types/kapruka";
 
 interface SearchApiResponse {
@@ -150,6 +151,10 @@ export default function Home() {
             </div>
           </section>
         )}
+
+        <section className="mt-12">
+          <OrderTrackingForm />
+        </section>
       </div>
 
       <CartDrawer />

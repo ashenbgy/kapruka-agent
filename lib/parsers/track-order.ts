@@ -1,4 +1,8 @@
-import type { TrackOrderResult } from "@/types/tracking";
+import type {
+  TrackOrderResult,
+  TrackingAmount,
+  TrackingRecipient,
+} from "@/types/tracking";
 
 function extractText(result: unknown): string {
   if (
@@ -50,6 +54,43 @@ function extractText(result: unknown): string {
   );
 }
 
+function cleanText(value: string): string {
+  return value
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]*>/g, "")
+    .trim();
+}
+
+function isTrackingAmount(
+  value: unknown,
+): value is TrackingAmount {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "value" in value &&
+    typeof value.value === "string" &&
+    "currency" in value &&
+    typeof value.currency === "string"
+  );
+}
+
+function isTrackingRecipient(
+  value: unknown,
+): value is TrackingRecipient {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "name" in value &&
+    typeof value.name === "string" &&
+    "phone" in value &&
+    typeof value.phone === "string" &&
+    "address" in value &&
+    typeof value.address === "string" &&
+    "city" in value &&
+    typeof value.city === "string"
+  );
+}
+
 function isTrackOrderResult(
   value: unknown,
 ): value is TrackOrderResult {
@@ -62,6 +103,12 @@ function isTrackOrderResult(
     typeof value.status === "string" &&
     "status_display" in value &&
     typeof value.status_display === "string" &&
+    "amount" in value &&
+    isTrackingAmount(value.amount) &&
+    "recipient" in value &&
+    isTrackingRecipient(value.recipient) &&
+    "progress" in value &&
+    Array.isArray(value.progress) &&
     "items" in value &&
     Array.isArray(value.items)
   );
@@ -101,5 +148,13 @@ export function parseTrackOrderResult(
     );
   }
 
-  return parsed;
+  return {
+    ...parsed,
+    recipient: {
+      name: cleanText(parsed.recipient.name),
+      phone: cleanText(parsed.recipient.phone),
+      address: cleanText(parsed.recipient.address),
+      city: cleanText(parsed.recipient.city),
+    },
+  };
 }

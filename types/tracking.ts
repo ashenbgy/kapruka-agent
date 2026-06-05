@@ -17,6 +17,11 @@ export interface TrackingItem {
   selling_price: number;
 }
 
+export interface TrackingAmount {
+  value: string;
+  currency: string;
+}
+
 export interface TrackOrderResult {
   order_number: string;
   pnref: string;
@@ -25,7 +30,7 @@ export interface TrackOrderResult {
   order_date: string;
   delivery_date: string;
   shipped_date: string | null;
-  amount: string;
+  amount: TrackingAmount;
   payment_method: string;
   comments: string | null;
   recipient: TrackingRecipient;
