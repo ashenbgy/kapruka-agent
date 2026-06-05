@@ -12,6 +12,7 @@ import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
 import type { KaprukaCategory } from "@/types/kapruka";
+import { runOpenAIShoppingAgent } from "@/lib/ai/openai-shopping-agent";
 
 const schema = z.object({
   message: z
@@ -426,6 +427,29 @@ export async function POST(
         message:
           greetingMessage(language),
       });
+    }
+
+    if (
+      !category &&
+      process.env.OPENAI_API_KEY
+    ) {
+      try {
+        const aiResult =
+          await runOpenAIShoppingAgent(
+            message,
+          );
+
+        if (aiResult) {
+          return NextResponse.json(
+            aiResult,
+          );
+        }
+      } catch (error) {
+        console.error(
+          "OpenAI agent failed. Using deterministic fallback:",
+          error,
+        );
+      }
     }
 
     if (wantsTracking(message)) {
