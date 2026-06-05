@@ -79,6 +79,26 @@ function isGreeting(
   ].includes(normalized);
 }
 
+function detectMaxPrice(
+  message: string,
+): number | undefined {
+  const normalized =
+    message.toLowerCase();
+
+  const match =
+    normalized.match(
+      /(?:under|below|less than|within|max|budget(?: of)?|rs\.?|lkr)\s*[:,]?\s*(\d[\d,]*)/i,
+    );
+
+  if (!match) {
+    return undefined;
+  }
+
+  return Number(
+    match[1].replaceAll(",", ""),
+  );
+}
+
 export async function POST(
   request: NextRequest,
 ) {
@@ -101,11 +121,16 @@ export async function POST(
       detectSearchQuery(message);
 
     if (searchQuery) {
+      const maxPrice =
+      detectMaxPrice(message);
+
       const rawResult =
-        await searchProducts({
-          q: searchQuery,
-          currency: "LKR",
-        });
+      await searchProducts({
+        q: searchQuery,
+        currency: "LKR",
+        max_price: maxPrice,
+        in_stock_only: true,
+      });
 
       const parsedResult =
         parseSearchProducts(
@@ -123,12 +148,17 @@ export async function POST(
         });
       }
 
+      const priceNote =
+      maxPrice !== undefined
+        ? ` under LKR ${maxPrice.toLocaleString()}`
+        : "";
+
       return NextResponse.json({
         ok: true,
         message:
-          `I found ${parsedResult.products.length} live Kapruka options for you. Take a look and add your favourites to the cart. 🎁`,
+            `I found ${parsedResult.products.length} live Kapruka options${priceNote}. Take a look and add your favourites to the cart. 🎁`,
         products:
-          parsedResult.products,
+            parsedResult.products,
       });
     }
 
