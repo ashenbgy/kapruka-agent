@@ -50,3 +50,12 @@ export interface CartDeliveryCheck {
   productName: string;
   result: KaprukaDeliveryCheck;
 }
+
+export interface KaprukaCategory {
+  name: string;
+  browseUrl?: string;
+}
+
+export interface KaprukaCategoryResponse {
+  categories: KaprukaCategory[];
+}
