@@ -54,13 +54,25 @@ export function parseDeliveryCheck(
 ): KaprukaDeliveryCheck {
   const text = extractText(result);
 
+  const errorMatch =
+    text.match(
+      /^Error(?:\s*\([^)]+\))?:\s*(.+)$/i,
+    );
+
+  if (errorMatch) {
+    throw new Error(
+      errorMatch[1].trim(),
+    );
+  }
+
   const headingMatch = text.match(
     /^## Delivery to (.+) on (\d{4}-\d{2}-\d{2})$/m,
   );
 
-  const availabilityMatch = text.match(
-    /\*\*(Available|Unavailable)\*\*/,
-  );
+  const availabilityMatch =
+    text.match(
+      /\*\*(Available|Unavailable)\*\*/i,
+    );
 
   const flatRateMatch = text.match(
     /flat rate\s+([A-Z]{3})\s+([\d,]+)/i,
