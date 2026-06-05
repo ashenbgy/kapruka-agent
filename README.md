@@ -4,7 +4,7 @@ A full-screen conversational shopping agent built for the Kapruka Agent Challeng
 
 ## Live Demo
 
-Add your deployed URL here.
+[https://kapruka-agent-lime.vercel.app]
 
 ## Features
 
