@@ -32,12 +32,6 @@ type Language =
   | "tanglish"
   | "sinhala";
 
-const hiddenCategories = new Set([
-  "adult products",
-  "liquor",
-  "pharmacy",
-]);
-
 const searchAliases = [
   {
     terms: [
