@@ -6,6 +6,15 @@ import type {
   KaprukaSearchProduct,
 } from "@/types/kapruka";
 
+const productDetailsCache =
+  new Map<string, KaprukaProductDetails>();
+
+const productDetailsRequests =
+  new Map<
+    string,
+    Promise<KaprukaProductDetails | null>
+  >();
+
 interface ProductCardProps {
   product: KaprukaSearchProduct;
   onAddToCart: (product: KaprukaSearchProduct) => void;
@@ -21,29 +30,79 @@ export function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   const [details, setDetails] =
-    useState<KaprukaProductDetails | null>(null);
+    useState<KaprukaProductDetails | null>(
+      () =>
+        productDetailsCache.get(
+          product.id,
+        ) ?? null,
+    );
 
   const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
+    const cachedProduct =
+      productDetailsCache.get(product.id);
+
+    if (cachedProduct) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     async function loadProductDetails() {
       try {
-        const response = await fetch(
-          `/api/products/${encodeURIComponent(product.id)}`,
-        );
+        let request =
+          productDetailsRequests.get(
+            product.id,
+          );
 
-        const data =
-          (await response.json()) as ProductDetailApiResponse;
+        if (!request) {
+          request = fetch(
+            `/api/products/${encodeURIComponent(
+              product.id,
+            )}`,
+          )
+            .then(async (response) => {
+              const data =
+                (await response.json()) as ProductDetailApiResponse;
+
+              if (
+                !response.ok ||
+                !data.ok ||
+                !data.product
+              ) {
+                return null;
+              }
+
+              productDetailsCache.set(
+                product.id,
+                data.product,
+              );
+
+              return data.product;
+            })
+            .finally(() => {
+              productDetailsRequests.delete(
+                product.id,
+              );
+            });
+
+          productDetailsRequests.set(
+            product.id,
+            request,
+          );
+        }
+
+        const productDetails =
+          await request;
 
         if (
           !cancelled &&
-          response.ok &&
-          data.ok &&
-          data.product
+          productDetails
         ) {
-          setDetails(data.product);
+          setDetails(productDetails);
         }
       } catch (error) {
         console.error(

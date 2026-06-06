@@ -34,6 +34,8 @@ interface CheckoutState {
     deliveryChecks: CartDeliveryCheck[],
   ) => void;
 
+  invalidateDelivery: () => void;
+
   setCustomerDetails: (input: {
     recipient: RecipientDetails;
     sender: SenderDetails;
@@ -102,6 +104,11 @@ export const useCheckoutStore =
         deliveryChecks: [],
         deliveryValidated: false,
         checkoutConfirmed: false,
+
+        payLink: "",
+        orderRef: "",
+        expiresAt: "",
+        orderSummary: undefined,
       }),
 
     setDeliveryChecks: (
@@ -116,6 +123,18 @@ export const useCheckoutStore =
               check.result.available,
           ),
         checkoutConfirmed: false,
+      }),
+
+    invalidateDelivery: () =>
+      set({
+        deliveryChecks: [],
+        deliveryValidated: false,
+        checkoutConfirmed: false,
+
+        payLink: "",
+        orderRef: "",
+        expiresAt: "",
+        orderSummary: undefined,
       }),
 
     setCustomerDetails: ({

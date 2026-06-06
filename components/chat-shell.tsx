@@ -87,13 +87,39 @@ export function ChatShell() {
   const [error, setError] =
     useState("");
 
+  const [
+    addedProductMessage,
+    setAddedProductMessage,
+  ] = useState("");
+
   const messagesEndRef =
     useRef<HTMLDivElement | null>(
       null,
     );
 
+  const [
+    visibleProductCount,
+    setVisibleProductCount,
+  ] = useState(6);
+
   const { addItem } =
     useCartStore();
+
+  function handleAddToCart(
+    product: Parameters<
+      typeof addItem
+    >[0],
+  ) {
+    addItem(product);
+
+    setAddedProductMessage(
+      `${product.name} added to your gift box 🎁`,
+    );
+
+    window.setTimeout(() => {
+      setAddedProductMessage("");
+    }, 2200);
+  }
 
   const {
     city: selectedCity,
@@ -183,6 +209,8 @@ export function ChatShell() {
             data.action,
         };
 
+      setVisibleProductCount(6);
+
       setMessages((current) => [
         ...current,
         assistantMessage,
@@ -271,23 +299,45 @@ export function ChatShell() {
               </div>
 
               {message.products &&
-                message.products
-                  .length > 0 && (
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {message.products.map(
-                      (product) => (
-                        <ProductCard
-                          key={
-                            product.id
+                message.products.length > 0 && (
+                  <div className="mt-4">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {message.products
+                        .slice(
+                          0,
+                          visibleProductCount,
+                        )
+                        .map((product) => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            onAddToCart={
+                              handleAddToCart
+                            }
+                          />
+                        ))}
+                    </div>
+
+                    {visibleProductCount <
+                      message.products.length && (
+                      <div className="mt-5 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVisibleProductCount(
+                              (current) =>
+                                Math.min(
+                                  current + 6,
+                                  message.products
+                                    ?.length ?? 0,
+                                ),
+                            )
                           }
-                          product={
-                            product
-                          }
-                          onAddToCart={
-                            addItem
-                          }
-                        />
-                      ),
+                          className="rounded-full border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-semibold text-zinc-200 transition hover:border-emerald-500 hover:text-white"
+                        >
+                          Show more options
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}
@@ -391,6 +441,11 @@ export function ChatShell() {
       </div>
 
       <div className="border-t border-zinc-800 bg-zinc-950 p-4">
+        {addedProductMessage && (
+          <div className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 rounded-full border border-emerald-500/40 bg-emerald-950 px-5 py-3 text-sm font-semibold text-emerald-200 shadow-2xl">
+            {addedProductMessage}
+          </div>
+        )}
         <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
           {quickPrompts.map(
             (prompt) => (

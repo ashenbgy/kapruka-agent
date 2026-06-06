@@ -69,9 +69,34 @@ export async function callKaprukaTool<TArgs extends object>(
     params: args,
   };
 
+  const safeLogData = {
+    tool: name,
+
+    productId:
+      "product_id" in args
+        ? String(args.product_id)
+        : undefined,
+
+    city:
+      "city" in args
+        ? String(args.city)
+        : undefined,
+
+    query:
+      "q" in args
+        ? String(args.q)
+        : undefined,
+
+    itemCount:
+      "cart" in args &&
+      Array.isArray(args.cart)
+        ? args.cart.length
+        : undefined,
+  };
+
   console.log(
-    `Calling Kapruka MCP tool: ${name}`,
-    JSON.stringify(wrappedArgs, null, 2),
+    "Calling Kapruka MCP tool:",
+    safeLogData,
   );
 
   const result = await client.callTool({
@@ -82,7 +107,6 @@ export async function callKaprukaTool<TArgs extends object>(
   if (result.isError) {
     console.error(
       `Kapruka MCP tool returned an error: ${name}`,
-      JSON.stringify(result, null, 2),
     );
 
     const errorText = extractMcpErrorText(result.content);

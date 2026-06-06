@@ -1,98 +1,158 @@
 import { create } from "zustand";
+import { useCheckoutStore } from "@/lib/store/checkout-store";
 import type { KaprukaSearchProduct } from "@/types/kapruka";
 
-export interface CartItem extends KaprukaSearchProduct {
+export interface CartItem
+  extends KaprukaSearchProduct {
   quantity: number;
 }
 
 interface CartState {
   items: CartItem[];
   isOpen: boolean;
+
   openCart: () => void;
   closeCart: () => void;
-  addItem: (product: KaprukaSearchProduct) => void;
-  increaseQuantity: (productId: string) => void;
-  decreaseQuantity: (productId: string) => void;
-  removeItem: (productId: string) => void;
+
+  addItem: (
+    product: KaprukaSearchProduct,
+  ) => void;
+
+  increaseQuantity: (
+    productId: string,
+  ) => void;
+
+  decreaseQuantity: (
+    productId: string,
+  ) => void;
+
+  removeItem: (
+    productId: string,
+  ) => void;
+
   clearCart: () => void;
 }
 
-export const useCartStore = create<CartState>((set) => ({
-  items: [],
-  isOpen: false,
+function invalidateCheckout() {
+  useCheckoutStore
+    .getState()
+    .invalidateDelivery();
+}
 
-  openCart: () => set({ isOpen: true }),
+export const useCartStore =
+  create<CartState>((set) => ({
+    items: [],
+    isOpen: false,
 
-  closeCart: () => set({ isOpen: false }),
+    openCart: () =>
+      set({
+        isOpen: true,
+      }),
 
-  addItem: (product) =>
-    set((state) => {
-      const existingItem = state.items.find(
-        (item) => item.id === product.id,
-      );
+    closeCart: () =>
+      set({
+        isOpen: false,
+      }),
 
-      if (existingItem) {
+    addItem: (product) => {
+      invalidateCheckout();
+
+      set((state) => {
+        const existingItem =
+          state.items.find(
+            (item) =>
+              item.id === product.id,
+          );
+
+        if (existingItem) {
+          return {
+            items: state.items.map(
+              (item) =>
+                item.id === product.id
+                  ? {
+                      ...item,
+                      quantity:
+                        item.quantity +
+                        1,
+                    }
+                  : item,
+            ),
+          };
+        }
+
         return {
-          items: state.items.map((item) =>
-            item.id === product.id
+          items: [
+            ...state.items,
+            {
+              ...product,
+              quantity: 1,
+            },
+          ],
+        };
+      });
+    },
+
+    increaseQuantity: (
+      productId,
+    ) => {
+      invalidateCheckout();
+
+      set((state) => ({
+        items: state.items.map(
+          (item) =>
+            item.id === productId
               ? {
                   ...item,
-                  quantity: item.quantity + 1,
+                  quantity:
+                    item.quantity +
+                    1,
                 }
               : item,
+        ),
+      }));
+    },
+
+    decreaseQuantity: (
+      productId,
+    ) => {
+      invalidateCheckout();
+
+      set((state) => ({
+        items: state.items
+          .map((item) =>
+            item.id === productId
+              ? {
+                  ...item,
+                  quantity:
+                    item.quantity -
+                    1,
+                }
+              : item,
+          )
+          .filter(
+            (item) =>
+              item.quantity > 0,
           ),
-          isOpen: true,
-        };
-      }
+      }));
+    },
 
-      return {
-        items: [
-          ...state.items,
-          {
-            ...product,
-            quantity: 1,
-          },
-        ],
-        isOpen: true,
-      };
-    }),
+    removeItem: (productId) => {
+      invalidateCheckout();
 
-  increaseQuantity: (productId) =>
-    set((state) => ({
-      items: state.items.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-            }
-          : item,
-      ),
-    })),
+      set((state) => ({
+        items: state.items.filter(
+          (item) =>
+            item.id !== productId,
+        ),
+      }));
+    },
 
-  decreaseQuantity: (productId) =>
-    set((state) => ({
-      items: state.items
-        .map((item) =>
-          item.id === productId
-            ? {
-                ...item,
-                quantity: item.quantity - 1,
-              }
-            : item,
-        )
-        .filter((item) => item.quantity > 0),
-    })),
+    clearCart: () => {
+      invalidateCheckout();
 
-  removeItem: (productId) =>
-    set((state) => ({
-      items: state.items.filter(
-        (item) => item.id !== productId,
-      ),
-    })),
-
-  clearCart: () =>
-    set({
-      items: [],
-      isOpen: false,
-    }),
-}));
+      set({
+        items: [],
+        isOpen: false,
+      });
+    },
+  }));
