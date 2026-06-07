@@ -200,6 +200,14 @@ export function ChatShell() {
       null,
     );
 
+  const messagesContainerRef =
+    useRef<HTMLDivElement | null>(
+      null,
+    );
+
+  const shouldAutoScrollRef =
+    useRef(true);
+
   const [
     visibleProductCounts,
     setVisibleProductCounts,
@@ -336,8 +344,13 @@ export function ChatShell() {
   } = useCheckoutStore();
 
   useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
+
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
+      block: "end",
     });
   }, [messages, loading]);
 
@@ -534,7 +547,26 @@ export function ChatShell() {
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-6">
+      <div
+        ref={messagesContainerRef}
+        onScroll={() => {
+          const container =
+            messagesContainerRef.current;
+
+          if (!container) {
+            return;
+          }
+
+          const distanceFromBottom =
+            container.scrollHeight -
+            container.scrollTop -
+            container.clientHeight;
+
+          shouldAutoScrollRef.current =
+            distanceFromBottom < 120;
+        }}
+        className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-6"
+      >
         {messages.length === 1 && (
           <section className="rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-950 to-emerald-950/20 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
