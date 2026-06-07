@@ -15,6 +15,52 @@ const productDetailsRequests =
     Promise<KaprukaProductDetails | null>
   >();
 
+
+function getRecommendation(
+  product: KaprukaSearchProduct,
+  details: KaprukaProductDetails | null,
+) {
+  const text = `${product.name} ${details?.category ?? ""}`
+    .toLowerCase();
+
+  if (product.price <= 5000) {
+    return {
+      label: "Budget pick",
+      reason: "A thoughtful gift at a friendly price.",
+    };
+  }
+
+  if (product.price >= 10000) {
+    return {
+      label: "Premium choice",
+      reason: "A memorable option for an extra-special surprise.",
+    };
+  }
+
+  if (
+    text.includes("rose") ||
+    text.includes("flower") ||
+    text.includes("bouquet")
+  ) {
+    return {
+      label: "Warm gesture",
+      reason: "A lovely way to make someone feel remembered.",
+    };
+  }
+
+  if (text.includes("cake")) {
+    return {
+      label: "Celebration pick",
+      reason: "A cheerful centrepiece for a birthday moment.",
+    };
+  }
+
+  return {
+    label: "Gift Mate pick",
+    reason: "A versatile live-catalog option worth considering.",
+  };
+}
+
 interface ProductCardProps {
   product: KaprukaSearchProduct;
   onAddToCart: (product: KaprukaSearchProduct) => void;
@@ -124,9 +170,18 @@ export function ProductCard({
       ? details.imageUrl
       : undefined;
 
+  const recommendation =
+    getRecommendation(
+      product,
+      details,
+    );
+
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-lg">
-      <div className="flex h-52 items-center justify-center overflow-hidden bg-zinc-800">
+      <div className="relative flex h-52 items-center justify-center overflow-hidden bg-zinc-800">
+        <span className="absolute left-3 top-3 z-10 rounded-full border border-emerald-400/30 bg-zinc-950/85 px-3 py-1 text-xs font-semibold text-emerald-300 shadow-lg backdrop-blur">
+          {recommendation.label}
+        </span>
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -164,6 +219,10 @@ export function ProductCard({
             {details.category}
           </p>
         )}
+
+        <p className="mt-3 text-sm leading-5 text-zinc-300">
+          {recommendation.reason}
+        </p>
 
         <div className="mt-auto flex gap-2 pt-5">
           <a

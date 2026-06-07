@@ -13,7 +13,12 @@ import { useCheckoutStore } from "@/lib/store/checkout-store";
 import type {
   ChatApiResponse,
   ChatMessage,
+  ShoppingChatContext,
 } from "@/types/chat";
+
+import type {
+  KaprukaSearchProduct,
+} from "@/types/kapruka";
 
 const initialMessages: ChatMessage[] = [
   {
@@ -27,6 +32,48 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
+const starterCards = [
+  {
+    icon: "🎂",
+    title: "Birthday surprise",
+    description: "Find a celebration cake under Rs. 8,000.",
+    prompt: "Find a birthday cake under Rs. 8000",
+  },
+  {
+    icon: "💐",
+    title: "Flowers for Amma",
+    description: "Browse warm flower-inspired gifts for Amma.",
+    prompt: "Show me flowers for Amma",
+  },
+  {
+    icon: "🎁",
+    title: "Gift under Rs. 5,000",
+    description: "Discover thoughtful budget-friendly picks.",
+    prompt: "Show me gifts under Rs. 5000",
+  },
+];
+
+const bundleIdeas = [
+  {
+    icon: "🌸",
+    title: "Amma’s Little Surprise",
+    description: "Start with flowers, then add a sweet extra.",
+    prompt: "Show me flowers for Amma",
+  },
+  {
+    icon: "🎉",
+    title: "Birthday Celebration",
+    description: "Pick a cake and add a personal icing message.",
+    prompt: "Find a birthday cake under Rs. 8000",
+  },
+  {
+    icon: "❤️",
+    title: "Long-distance Hug",
+    description: "Explore warm gift ideas with delivery support.",
+    prompt: "Show me gift options",
+  },
+];
+
 const quickPrompts = [
   "Find a birthday cake under Rs. 8000",
   "Show me flowers for Amma",
@@ -37,6 +84,35 @@ const quickPrompts = [
   "අම්මාට මල් බලන්න",
   "කේක් බලන්න",
 ];
+
+const ordinalIndexes: Record<
+  string,
+  number
+> = {
+  first: 0,
+  "1st": 0,
+  one: 0,
+
+  second: 1,
+  "2nd": 1,
+  two: 1,
+
+  third: 2,
+  "3rd": 2,
+  three: 2,
+
+  fourth: 3,
+  "4th": 3,
+  four: 3,
+
+  fifth: 4,
+  "5th": 4,
+  five: 4,
+
+  sixth: 5,
+  "6th": 5,
+  six: 5,
+};
 
 function formatCategoryLabel(
   categoryName: string,
@@ -72,6 +148,33 @@ function formatCategoryLabel(
   );
 }
 
+function findLastProducts(
+  messages: ChatMessage[],
+): KaprukaSearchProduct[] {
+  return (
+    [...messages]
+      .reverse()
+      .find(
+        (message) =>
+          message.products &&
+          message.products.length > 0,
+      )?.products ?? []
+  );
+}
+
+function extractBudgetSuffix(
+  messageText: string,
+): string {
+  const match =
+    messageText.match(
+      /LKR\s*([\d,]+)/i,
+    );
+
+  return match
+    ? ` under Rs. ${match[1]}`
+    : "";
+}
+
 export function ChatShell() {
   const [messages, setMessages] =
     useState<ChatMessage[]>(
@@ -98,12 +201,25 @@ export function ChatShell() {
     );
 
   const [
-    visibleProductCount,
-    setVisibleProductCount,
-  ] = useState(6);
+    visibleProductCounts,
+    setVisibleProductCounts,
+  ] = useState<Record<string, number>>(
+    {},
+  );
 
-  const { addItem } =
-    useCartStore();
+  const {
+    items,
+    addItem,
+    removeItem,
+  } = useCartStore();
+
+  function showToast(text: string) {
+    setAddedProductMessage(text);
+
+    window.setTimeout(() => {
+      setAddedProductMessage("");
+    }, 2200);
+  }
 
   function handleAddToCart(
     product: Parameters<
@@ -112,13 +228,105 @@ export function ChatShell() {
   ) {
     addItem(product);
 
-    setAddedProductMessage(
-      `${product.name} added to your gift box 🎁`,
+    showToast(
+      `Lovely choice! ${product.name} is in your gift box 🎁`,
+    );
+  }
+
+  function appendLocalExchange(
+    userText: string,
+    assistantText: string,
+  ) {
+    setMessages((current) => [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        text: userText,
+      },
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        text: assistantText,
+      },
+    ]);
+  }
+
+  function handleLocalCartCommand(
+    text: string,
+  ): boolean {
+    const normalized =
+      text.toLowerCase().trim();
+
+    const lastProducts =
+      findLastProducts(messages);
+
+    const addMatch = normalized.match(
+      /(?:add|cart|take|select)\s+(?:the\s+)?(first|1st|one|second|2nd|two|third|3rd|three|fourth|4th|four|fifth|5th|five|sixth|6th|six)(?:\s+one)?/,
     );
 
-    window.setTimeout(() => {
-      setAddedProductMessage("");
-    }, 2200);
+    if (addMatch) {
+      const index =
+        ordinalIndexes[addMatch[1]];
+
+      const product =
+        lastProducts[index];
+
+      if (!product) {
+        appendLocalExchange(
+          text,
+          "I cannot find that option in the latest results. Try another product number or search again. 😊",
+        );
+
+        return true;
+      }
+
+      handleAddToCart(product);
+
+      appendLocalExchange(
+        text,
+        `Lovely pick! ${product.name} is in your gift box 🎁 Shall we add a small extra, or check delivery?`,
+      );
+
+      return true;
+    }
+
+    const removeMatch =
+      normalized.match(
+        /(?:remove|delete)\s+(?:the\s+)?(.+?)(?:\s+from\s+(?:the\s+)?(?:cart|gift box))?$/,
+      );
+
+    if (removeMatch) {
+      const keyword =
+        removeMatch[1].trim();
+
+      const product =
+        items.find((item) =>
+          item.name
+            .toLowerCase()
+            .includes(keyword),
+        );
+
+      if (!product) {
+        appendLocalExchange(
+          text,
+          "I could not find that item in your gift box. Open the cart to review the current items. 😊",
+        );
+
+        return true;
+      }
+
+      removeItem(product.id);
+
+      appendLocalExchange(
+        text,
+        `Done — ${product.name} is out of the gift box. Shall we find a better match? 😊`,
+      );
+
+      return true;
+    }
+
+    return false;
   }
 
   const {
@@ -147,6 +355,18 @@ export function ChatShell() {
       return;
     }
 
+    if (
+      !category &&
+      handleLocalCartCommand(
+        trimmedMessage,
+      )
+    ) {
+      setInput("");
+      setError("");
+
+      return;
+    }
+
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -162,6 +382,35 @@ export function ChatShell() {
     setLoading(true);
     setError("");
 
+    const context: ShoppingChatContext = {
+      recentMessages: messages
+        .slice(-8)
+        .map((previousMessage) => ({
+          role: previousMessage.role,
+          text: previousMessage.text,
+        })),
+
+      cart: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        currency: item.currency,
+      })),
+
+      lastProducts:
+        findLastProducts(messages).slice(
+          0,
+          12,
+        ),
+
+      city:
+        selectedCity || undefined,
+
+      deliveryDate:
+        deliveryDate || undefined,
+    };
+
     try {
       const response =
         await fetch(
@@ -173,9 +422,9 @@ export function ChatShell() {
                 "application/json",
             },
             body: JSON.stringify({
-              message:
-                trimmedMessage,
+              message: trimmedMessage,
               category,
+              context,
             }),
           },
         );
@@ -209,8 +458,6 @@ export function ChatShell() {
             data.action,
         };
 
-      setVisibleProductCount(6);
-
       setMessages((current) => [
         ...current,
         assistantMessage,
@@ -241,9 +488,9 @@ export function ChatShell() {
         id: crypto.randomUUID(),
         role: "assistant",
         text: [
-          `✓ ${cityName} selected as your delivery city. 🚚`,
+          `${cityName} selected 🚚`,
           "",
-          "Add your products to the cart, then continue to delivery to choose a date and confirm availability.",
+          "Perfect. Add your favourites, then open the gift box and choose a delivery date. We’ll make sure everything can reach them on time.",
         ].join("\n"),
       };
 
@@ -262,20 +509,109 @@ export function ChatShell() {
   }
 
   return (
-    <section className="flex min-h-[calc(100vh-7rem)] flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
-      <header className="border-b border-zinc-800 bg-zinc-900/90 px-5 py-4 backdrop-blur">
+    <section className="flex h-[calc(100vh-7rem)] min-h-0 flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
+      <header className="shrink-0 border-b border-zinc-800 bg-zinc-900/90 px-5 py-4 backdrop-blur">
         <p className="text-sm font-semibold text-white">
           Kapruka Gift Mate
         </p>
 
-        <p className="mt-1 text-xs text-emerald-400">
-          ● Live Kapruka catalog connected
+        <p className="mt-1 text-xs text-zinc-400">
+          Your warm AI gift concierge for Sri Lanka
         </p>
+
+        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+          <span className="rounded-full border border-emerald-900 bg-emerald-950/40 px-3 py-1 text-emerald-300">
+            ● Live catalog
+          </span>
+
+          <span className="rounded-full border border-sky-900 bg-sky-950/40 px-3 py-1 text-sky-300">
+            ● Delivery quotes
+          </span>
+
+          <span className="rounded-full border border-violet-900 bg-violet-950/40 px-3 py-1 text-violet-300">
+            ● Secure checkout
+          </span>
+        </div>
       </header>
 
-      <div className="flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-6">
-        {messages.map(
-          (message) => (
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-6 sm:px-6">
+        {messages.length === 1 && (
+          <section className="rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-950 to-emerald-950/20 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
+              Start with a little inspiration
+            </p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {starterCards.map((card) => (
+                <button
+                  key={card.title}
+                  type="button"
+                  onClick={() =>
+                    void sendMessage(card.prompt)
+                  }
+                  disabled={loading}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-emerald-600 hover:bg-zinc-900 disabled:opacity-50"
+                >
+                  <span className="text-3xl">
+                    {card.icon}
+                  </span>
+
+                  <span className="mt-3 block font-semibold text-white">
+                    {card.title}
+                  </span>
+
+                  <span className="mt-1 block text-xs leading-5 text-zinc-400">
+                    {card.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-5 border-t border-zinc-800 pt-4">
+              <p className="text-xs font-semibold text-zinc-300">
+                Curated gift paths
+              </p>
+
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+                {bundleIdeas.map((bundle) => (
+                  <button
+                    key={bundle.title}
+                    type="button"
+                    onClick={() =>
+                      void sendMessage(bundle.prompt)
+                    }
+                    disabled={loading}
+                    className="min-w-56 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-left transition hover:border-emerald-700 disabled:opacity-50"
+                  >
+                    <span className="text-2xl">
+                      {bundle.icon}
+                    </span>
+
+                    <span className="mt-2 block text-sm font-semibold text-white">
+                      {bundle.title}
+                    </span>
+
+                    <span className="mt-1 block text-xs leading-5 text-zinc-400">
+                      {bundle.description}
+                    </span>
+
+                    <span className="mt-3 block text-xs font-semibold text-emerald-300">
+                      Explore bundle →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {messages.map((message) => {
+          const visibleProductCount =
+            visibleProductCounts[
+              message.id
+            ] ?? 6;
+
+          return (
             <article
               key={message.id}
               className={
@@ -324,13 +660,16 @@ export function ChatShell() {
                         <button
                           type="button"
                           onClick={() =>
-                            setVisibleProductCount(
-                              (current) =>
-                                Math.min(
-                                  current + 6,
-                                  message.products
-                                    ?.length ?? 0,
-                                ),
+                            setVisibleProductCounts(
+                              (current) => ({
+                                ...current,
+                                [message.id]:
+                                  Math.min(
+                                    visibleProductCount + 6,
+                                    message.products
+                                      ?.length ?? 0,
+                                  ),
+                              }),
                             )
                           }
                           className="rounded-full border border-zinc-700 bg-zinc-900 px-5 py-3 text-sm font-semibold text-zinc-200 transition hover:border-emerald-500 hover:text-white"
@@ -343,31 +682,33 @@ export function ChatShell() {
                 )}
 
               {message.categories &&
-                message.categories
-                  .length > 0 && (
+                message.categories.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {message.categories.map(
-                      (
-                        category,
-                      ) => (
-                        <button
-                          key={
-                            category.name
-                          }
-                          type="button"
-                          onClick={() =>
-                            void sendMessage(
-                              `Show me ${category.name}`,
+                      (category) => {
+                        const budgetSuffix =
+                          extractBudgetSuffix(
+                            message.text,
+                          );
+
+                        return (
+                          <button
+                            key={category.name}
+                            type="button"
+                            onClick={() =>
+                              void sendMessage(
+                                `Show me ${category.name}${budgetSuffix}`,
+                                category.name,
+                              )
+                            }
+                            className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-300 hover:border-emerald-500 hover:text-white"
+                          >
+                            {formatCategoryLabel(
                               category.name,
-                            )
-                          }
-                          className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-300 hover:border-emerald-500 hover:text-white"
-                        >
-                          {formatCategoryLabel(
-                            category.name,
-                          )}
-                        </button>
-                      ),
+                            )}
+                          </button>
+                        );
+                      },
                     )}
                   </div>
                 )}
@@ -422,8 +763,8 @@ export function ChatShell() {
                 </div>
               )}
             </article>
-          ),
-        )}
+          );
+        })}
 
         {loading && (
           <div className="mr-auto rounded-3xl rounded-bl-md border border-zinc-800 bg-zinc-950 px-5 py-4 text-sm text-zinc-400">
@@ -440,30 +781,34 @@ export function ChatShell() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t border-zinc-800 bg-zinc-950 p-4">
+      <div className="shrink-0 border-t border-zinc-800 bg-zinc-950 p-4">
         {addedProductMessage && (
           <div className="fixed bottom-28 left-1/2 z-50 -translate-x-1/2 rounded-full border border-emerald-500/40 bg-emerald-950 px-5 py-3 text-sm font-semibold text-emerald-200 shadow-2xl">
             {addedProductMessage}
           </div>
         )}
-        <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
-          {quickPrompts.map(
-            (prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() =>
-                  void sendMessage(
-                    prompt,
-                  )
-                }
-                disabled={loading}
-                className="whitespace-nowrap rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 hover:border-emerald-500 hover:text-white disabled:opacity-50"
-              >
-                {prompt}
-              </button>
-            ),
-          )}
+        <div className="relative mb-3">
+          <div className="prompt-scroll flex gap-2 overflow-x-auto pb-1 pr-10">
+            {quickPrompts.map(
+              (prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  onClick={() =>
+                    void sendMessage(
+                      prompt,
+                    )
+                  }
+                  disabled={loading}
+                  className="whitespace-nowrap rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 hover:border-emerald-500 hover:text-white disabled:opacity-50"
+                >
+                  {prompt}
+                </button>
+              ),
+            )}
+          </div>
+
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-zinc-950 to-transparent" />
         </div>
 
         <form

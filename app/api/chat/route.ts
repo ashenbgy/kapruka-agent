@@ -3,16 +3,93 @@ import {
   NextResponse,
 } from "next/server";
 import { z } from "zod";
+
 import {
   listCategories,
   listDeliveryCities,
   searchProducts,
 } from "@/lib/kapruka-tools";
+
 import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
-import type { KaprukaCategory } from "@/types/kapruka";
+
+import type {
+  KaprukaCategory,
+  KaprukaSearchProduct,
+} from "@/types/kapruka";
+
 import { runOpenAIShoppingAgent } from "@/lib/ai/openai-shopping-agent";
+
+const contextMessageSchema = z.object({
+  role: z.enum([
+    "user",
+    "assistant",
+  ]),
+
+  text: z
+    .string()
+    .trim()
+    .max(500),
+});
+
+const contextCartItemSchema = z.object({
+  id: z
+    .string()
+    .trim()
+    .max(100),
+
+  name: z
+    .string()
+    .trim()
+    .max(200),
+
+  quantity: z
+    .number()
+    .int()
+    .min(1)
+    .max(99),
+
+  price: z
+    .number()
+    .nonnegative(),
+
+  currency: z
+    .string()
+    .trim()
+    .max(10),
+});
+
+const contextProductSchema = z.object({
+  id: z
+    .string()
+    .trim()
+    .max(100),
+
+  name: z
+    .string()
+    .trim()
+    .max(200),
+
+  price: z
+    .number()
+    .nonnegative(),
+
+  currency: z
+    .string()
+    .trim()
+    .max(10),
+
+  stockLabel: z
+    .string()
+    .trim()
+    .max(100),
+
+  productUrl: z
+    .string()
+    .trim()
+    .max(500),
+});
 
 const schema = z.object({
   message: z
@@ -25,6 +102,40 @@ const schema = z.object({
     .string()
     .trim()
     .max(100)
+    .optional(),
+
+  context: z
+    .object({
+      recentMessages: z
+        .array(
+          contextMessageSchema,
+        )
+        .max(8),
+
+      cart: z
+        .array(
+          contextCartItemSchema,
+        )
+        .max(30),
+
+      lastProducts: z
+        .array(
+          contextProductSchema,
+        )
+        .max(12),
+
+      city: z
+        .string()
+        .trim()
+        .max(100)
+        .optional(),
+
+      deliveryDate: z
+        .string()
+        .trim()
+        .max(20)
+        .optional(),
+    })
     .optional(),
 });
 
@@ -40,8 +151,10 @@ const searchAliases = [
       "cakes",
       "කේක්",
     ],
+
     query: "cake",
   },
+
   {
     terms: [
       "flower",
@@ -50,32 +163,40 @@ const searchAliases = [
       "mal tikak",
       "මල්",
     ],
+
     query: "flower",
   },
+
   {
     terms: [
       "chocolate",
       "chocolates",
       "චොකලට්",
     ],
+
     query: "chocolates",
   },
+
   {
     terms: [
       "hamper",
       "hampers",
       "gift hamper",
     ],
+
     query: "hamper",
   },
+
   {
     terms: [
       "fruit",
       "fruit basket",
       "පළතුරු",
     ],
+
     query: "fruit basket",
   },
+
   {
     terms: [
       "gift",
@@ -84,55 +205,145 @@ const searchAliases = [
       "තෑගි",
       "තෑග්ග",
     ],
+
     query: "gift",
   },
+
   {
     terms: [
       "birthday",
       "upandinaya",
       "උපන්දිනය",
     ],
+
     query: "birthday",
   },
+
   {
     terms: [
       "anniversary",
     ],
-    query: "anniversary",
+
+    query:
+      "anniversary",
   },
+
   {
     terms: [
       "wedding",
     ],
+
     query: "wedding",
   },
+
   {
     terms: [
       "baby",
     ],
+
     query: "baby",
   },
+
   {
     terms: [
       "graduation",
     ],
-    query: "graduation",
+
+    query:
+      "graduation",
   },
+
   {
     terms: [
       "toy",
       "toys",
     ],
+
     query: "toys",
   },
+
   {
     terms: [
       "book",
       "books",
     ],
+
     query: "books",
   },
 ];
+
+const featuredCategoryNames = [
+  "cakes",
+  "flowers",
+  "Chocolates",
+  "combopack",
+  "Fruits",
+  "Giftset",
+  "Personalized Gifts",
+  "GreetingCards",
+  "KidsToys",
+  "BabyItems",
+  "Perfumes",
+  "Books",
+  "birthday",
+  "anniversary",
+  "graduation",
+  "wedding",
+  "samedaydelivery",
+  "bestsellers",
+];
+
+const categorySearchAliases: Record<
+  string,
+  string
+> = {
+  cakes: "cake",
+
+  flowers: "flower",
+
+  chocolates:
+    "chocolates",
+
+  combopack: "combo",
+
+  fruits:
+    "fruit basket",
+
+  giftset:
+    "gift set",
+
+  "personalized gifts":
+    "personalized",
+
+  greetingcards:
+    "card",
+
+  kidstoys: "toy",
+
+  babyitems: "baby",
+
+  perfumes:
+    "perfume",
+
+  books: "books",
+
+  birthday:
+    "birthday",
+
+  anniversary:
+    "anniversary",
+
+  graduation:
+    "graduation",
+
+  wedding: "wedding",
+
+  samedaydelivery:
+    "gift",
+
+  bestsellers:
+    "gift",
+};
 
 function detectLanguage(
   message: string,
@@ -165,7 +376,9 @@ function detectLanguage(
   if (
     singlishTerms.some(
       (term) =>
-        normalized.includes(term),
+        normalized.includes(
+          term,
+        ),
     )
   ) {
     return "singlish";
@@ -178,7 +391,9 @@ function isGreeting(
   message: string,
 ): boolean {
   const normalized =
-    message.toLowerCase().trim();
+    message
+      .toLowerCase()
+      .trim();
 
   return [
     "hi",
@@ -188,7 +403,34 @@ function isGreeting(
     "start",
     "ආයුබෝවන්",
     "හෙලෝ",
-  ].includes(normalized);
+  ].includes(
+    normalized,
+  );
+}
+
+function wantsGenericGiftHelp(
+  message: string,
+): boolean {
+  const normalized =
+    message.toLowerCase();
+
+  return [
+    "gift options",
+    "show me gifts",
+    "find gifts",
+    "gift ideas",
+    "recommend a gift",
+    "gifts under",
+    "gift under",
+    "thagga",
+    "තෑගි",
+    "තෑග්ග",
+  ].some(
+    (phrase) =>
+      normalized.includes(
+        phrase,
+      ),
+  );
 }
 
 function wantsCategories(
@@ -206,8 +448,11 @@ function wantsCategories(
     "options monawada",
     "categories monawada",
     "වර්ග",
-  ].some((phrase) =>
-    normalized.includes(phrase),
+  ].some(
+    (phrase) =>
+      normalized.includes(
+        phrase,
+      ),
   );
 }
 
@@ -227,8 +472,11 @@ function wantsTracking(
     "order eka track",
     "ඇණවුම",
     "ඔර්ඩර් එක",
-  ].some((phrase) =>
-    normalized.includes(phrase),
+  ].some(
+    (phrase) =>
+      normalized.includes(
+        phrase,
+      ),
   );
 }
 
@@ -239,13 +487,176 @@ function detectSearchQuery(
     message.toLowerCase();
 
   const matchedAlias =
-    searchAliases.find((alias) =>
-      alias.terms.some((term) =>
-        normalized.includes(term),
-      ),
+    searchAliases.find(
+      (alias) =>
+        alias.terms.some(
+          (term) =>
+            normalized.includes(
+              term,
+            ),
+        ),
     );
 
-  return matchedAlias?.query ?? null;
+  return (
+    matchedAlias?.query ??
+    null
+  );
+}
+
+function wantsCheaperOptions(
+  message: string,
+): boolean {
+  const normalized =
+    message.toLowerCase();
+
+  return [
+    "cheaper",
+    "lower price",
+    "less expensive",
+    "budget options",
+    "affordable",
+    "adu ewa",
+    "ganan adu",
+    "අඩු මිල",
+  ].some(
+    (phrase) =>
+      normalized.includes(
+        phrase,
+      ),
+  );
+}
+
+function inferPreviousSearchQuery(
+  context:
+    | z.infer<
+        typeof schema
+      >["context"]
+    | undefined,
+): string | null {
+  const previousProducts =
+    context?.lastProducts ??
+    [];
+
+  if (
+    previousProducts.length ===
+    0
+  ) {
+    return null;
+  }
+
+  const names =
+    previousProducts
+      .map((product) =>
+        product.name.toLowerCase(),
+      )
+      .join(" ");
+
+  if (
+    names.includes(
+      "flower",
+    ) ||
+    names.includes(
+      "rose",
+    ) ||
+    names.includes(
+      "bouquet",
+    )
+  ) {
+    return "flower";
+  }
+
+  if (
+    names.includes(
+      "cake",
+    )
+  ) {
+    return "cake";
+  }
+
+  if (
+    names.includes(
+      "chocolate",
+    )
+  ) {
+    return "chocolates";
+  }
+
+  if (
+    names.includes(
+      "hamper",
+    )
+  ) {
+    return "hamper";
+  }
+
+  if (
+    names.includes(
+      "fruit",
+    )
+  ) {
+    return "fruit basket";
+  }
+
+  if (
+    names.includes(
+      "toy",
+    )
+  ) {
+    return "toys";
+  }
+
+  if (
+    names.includes(
+      "book",
+    )
+  ) {
+    return "books";
+  }
+
+  return null;
+}
+
+function inferCheaperMaxPrice(
+  context:
+    | z.infer<
+        typeof schema
+      >["context"]
+    | undefined,
+): number | undefined {
+  const prices =
+    context?.lastProducts
+      ?.map(
+        (product) =>
+          product.price,
+      )
+      .filter(
+        (price) =>
+          Number.isFinite(
+            price,
+          ) &&
+          price > 0,
+      ) ?? [];
+
+  if (
+    prices.length ===
+    0
+  ) {
+    return undefined;
+  }
+
+  const cheapestVisiblePrice =
+    Math.min(
+      ...prices,
+    );
+
+  return Math.max(
+    1,
+
+    Math.floor(
+      cheapestVisiblePrice -
+        1,
+    ),
+  );
 }
 
 function detectMaxPrice(
@@ -264,7 +675,10 @@ function detectMaxPrice(
   }
 
   return Number(
-    match[1].replaceAll(",", ""),
+    match[1].replaceAll(
+      ",",
+      "",
+    ),
   );
 }
 
@@ -279,13 +693,23 @@ function extractDeliveryCityQuery(
     /([a-zA-Z\s-]{2,40})\s+(?:deliver|delivery)\s+(?:karanna|puluwanda)/i,
   ];
 
-  for (const pattern of patterns) {
+  for (
+    const pattern of
+    patterns
+  ) {
     const match =
-      message.match(pattern);
+      message.match(
+        pattern,
+      );
 
-    if (match?.[1]) {
+    if (
+      match?.[1]
+    ) {
       return match[1]
-        .replace(/[?.!,]+$/g, "")
+        .replace(
+          /[?.!,]+$/g,
+          "",
+        )
         .trim();
     }
   }
@@ -293,34 +717,17 @@ function extractDeliveryCityQuery(
   return null;
 }
 
-const featuredCategoryNames = [
-  "cakes",
-  "flowers",
-  "Chocolates",
-  "combopack",
-  "Fruits",
-  "Giftset",
-  "Personalized Gifts",
-  "GreetingCards",
-  "KidsToys",
-  "BabyItems",
-  "Perfumes",
-  "Books",
-  "birthday",
-  "anniversary",
-  "graduation",
-  "wedding",
-  "samedaydelivery",
-  "bestsellers",
-];
-
 function getFeaturedCategories(
-  categories: KaprukaCategory[],
+  categories:
+    KaprukaCategory[],
 ) {
   const featuredOrder =
     new Map(
       featuredCategoryNames.map(
-        (name, index) => [
+        (
+          name,
+          index,
+        ) => [
           name.toLowerCase(),
           index,
         ],
@@ -328,13 +735,17 @@ function getFeaturedCategories(
     );
 
   return categories
-    .filter((category) =>
-      featuredOrder.has(
-        category.name.toLowerCase(),
-      ),
+    .filter(
+      (category) =>
+        featuredOrder.has(
+          category.name.toLowerCase(),
+        ),
     )
     .sort(
-      (first, second) =>
+      (
+        first,
+        second,
+      ) =>
         (featuredOrder.get(
           first.name.toLowerCase(),
         ) ?? 999) -
@@ -344,10 +755,63 @@ function getFeaturedCategories(
     );
 }
 
+function filterRelevantProducts(
+  query: string,
+  products:
+    KaprukaSearchProduct[],
+): KaprukaSearchProduct[] {
+  if (
+    query !== "flower"
+  ) {
+    return products;
+  }
+
+  return products.filter(
+    (product) => {
+      const name =
+        product.name.toLowerCase();
+
+      const looksLikeFlower =
+        name.includes(
+          "flower",
+        ) ||
+        name.includes(
+          "rose",
+        ) ||
+        name.includes(
+          "bouquet",
+        );
+
+      const looksLikeCake =
+        name.includes(
+          "cake",
+        );
+
+      return (
+        looksLikeFlower &&
+        !looksLikeCake
+      );
+    },
+  );
+}
+
+function getCategorySearchQuery(
+  category: string,
+): string {
+  return (
+    categorySearchAliases[
+      category.toLowerCase()
+    ] ?? category
+  );
+}
+
 function greetingMessage(
   language: Language,
 ): string {
-  if (language === "sinhala") {
+  if (
+    language ===
+    "sinhala"
+  ) {
     return [
       "ආයුබෝවන්! 👋 මම ඔබගේ Kapruka Gift Mate.",
       "",
@@ -360,7 +824,10 @@ function greetingMessage(
     ].join("\n");
   }
 
-  if (language === "singlish") {
+  if (
+    language ===
+    "singlish"
+  ) {
     return [
       "Ayubowan! 👋 Mama oyage Kapruka Gift Mate.",
       "",
@@ -391,19 +858,38 @@ function productResultMessage(
   maxPrice?: number,
 ): string {
   const priceNote =
-    maxPrice !== undefined
+    maxPrice !==
+    undefined
       ? ` under LKR ${maxPrice.toLocaleString()}`
       : "";
 
-  if (language === "sinhala") {
-    return `මට Kapruka නිෂ්පාදන ${productCount}ක් හමු වුණා${priceNote}. කැමති ඒවා cart එකට එකතු කරන්න. 🎁`;
+  if (
+    language ===
+    "sinhala"
+  ) {
+    return [
+      `ලස්සන Kapruka options ${productCount}ක් හමු වුණා${priceNote}. 🎁`,
+      "කැමති එක cart එකට add කරන්න.",
+      "තව ටිකක් අඩු මිල options ඕන නම් “අඩු මිල ඒවා පෙන්වන්න” කියන්න.",
+    ].join("\n");
   }
 
-  if (language === "singlish") {
-    return `Kapruka options ${productCount}k hambuna${priceNote}. Kamathi ewa cart ekata add karanna. 🎁`;
+  if (
+    language ===
+    "singlish"
+  ) {
+    return [
+      `Lassana Kapruka options ${productCount}k hambuna${priceNote}. 🎁`,
+      "Kamathi eka gift box ekata add karanna.",
+      "Budget eka tikak adu karanna one nam “show cheaper ones” kiyanna.",
+    ].join("\n");
   }
 
-  return `I found ${productCount} live Kapruka options${priceNote}. Add your favourites to the cart. 🎁`;
+  return [
+    `I found ${productCount} lovely Kapruka options${priceNote}. 🎁`,
+    "Add your favourite to the gift box.",
+    "Need a smaller price tag? Just say “show cheaper ones”.",
+  ].join("\n");
 }
 
 export async function POST(
@@ -416,62 +902,79 @@ export async function POST(
     const {
       message,
       category,
-    } = schema.parse(body);
+      context,
+    } = schema.parse(
+      body,
+    );
 
     const language =
-      detectLanguage(message);
+      detectLanguage(
+        message,
+      );
 
-    if (isGreeting(message)) {
-      return NextResponse.json({
-        ok: true,
-        message:
-          greetingMessage(language),
-      });
-    }
+    const explicitSearchQuery =
+      detectSearchQuery(
+        message,
+      );
 
-    if (
-      !category &&
-      process.env.OPENAI_API_KEY
-    ) {
-      try {
-        const aiResult =
-          await runOpenAIShoppingAgent(
-            message,
-          );
+    const genericGiftHelp =
+      wantsGenericGiftHelp(
+        message,
+      );
 
-        if (aiResult) {
-          return NextResponse.json(
-            aiResult,
-          );
-        }
-      } catch (error) {
-        console.error(
-          "OpenAI agent failed. Using deterministic fallback:",
-          error,
-        );
-      }
-    }
+    const categoryHelp =
+      wantsCategories(
+        message,
+      );
 
-    if (wantsTracking(message)) {
-      return NextResponse.json({
-        ok: true,
-        message:
-          language === "sinhala"
-            ? "ඔබගේ Kapruka order number එක ඇතුළත් කරන්න. 📦"
-            : language === "singlish"
-              ? "Kapruka confirmation email eke order number eka danna. 📦"
-              : "Enter the final order number from your Kapruka confirmation email. 📦",
-        action:
-          "show_tracking",
-      });
-    }
+    const trackingRequest =
+      wantsTracking(
+        message,
+      );
 
     const cityQuery =
       extractDeliveryCityQuery(
         message,
       );
 
-    if (cityQuery) {
+    if (
+      isGreeting(
+        message,
+      )
+    ) {
+      return NextResponse.json({
+        ok: true,
+
+        message:
+          greetingMessage(
+            language,
+          ),
+      });
+    }
+
+    if (
+      trackingRequest
+    ) {
+      return NextResponse.json({
+        ok: true,
+
+        message:
+          language ===
+          "sinhala"
+            ? "ඔබගේ Kapruka order number එක ඇතුළත් කරන්න. 📦"
+            : language ===
+                "singlish"
+              ? "Kapruka confirmation email eke order number eka danna. 📦"
+              : "Enter the final order number from your Kapruka confirmation email. 📦",
+
+        action:
+          "show_tracking",
+      });
+    }
+
+    if (
+      cityQuery
+    ) {
       const rawResult =
         await listDeliveryCities(
           cityQuery,
@@ -487,8 +990,10 @@ export async function POST(
         ok: true,
 
         message:
-          parsedResult.cities
-            .length > 0
+          parsedResult
+            .cities
+            .length >
+          0
             ? language ===
               "singlish"
               ? "Delivery city match eka hambuna. City eka select karanna. 🚚"
@@ -500,23 +1005,41 @@ export async function POST(
       });
     }
 
-    if (wantsCategories(message)) {
+    if (
+      genericGiftHelp
+    ) {
       const rawResult =
-        await listCategories(1);
+        await listCategories(
+          1,
+        );
 
       const parsedResult =
         parseCategories(
           rawResult,
         );
 
+      const maxPrice =
+        detectMaxPrice(
+          message,
+        );
+
+      const budgetText =
+        maxPrice !==
+        undefined
+          ? ` Your budget is LKR ${maxPrice.toLocaleString()}.`
+          : "";
+
       return NextResponse.json({
         ok: true,
+
         message:
-          language === "sinhala"
-            ? "මෙන්න Kapruka වර්ග කිහිපයක්. එකක් තෝරන්න. 🛍️"
-            : language === "singlish"
-              ? "Me Kapruka categories walin ekak select karanna. 🛍️"
-              : "Here are some live Kapruka categories. Pick one and I’ll show matching products. 🛍️",
+          language ===
+          "sinhala"
+            ? `හොඳ තෑග්ගක් තෝරමු 🎁${budgetText} මුලින් වර්ගයක් තෝරන්න.`
+            : language ===
+                "singlish"
+              ? `Lassana gift ekak select karamu 🎁${budgetText} Category ekak choose karanna. Mama best options tika pennannam.`
+              : `Let’s find something lovely 🎁${budgetText} Pick a category and I’ll bring you the best live options.`,
 
         categories:
           getFeaturedCategories(
@@ -525,24 +1048,16 @@ export async function POST(
       });
     }
 
-    const maxPrice =
-      detectMaxPrice(message);
-
-    const searchQuery =
-      detectSearchQuery(message);
-
-    if (category) {
+    if (
+      categoryHelp
+    ) {
       const rawResult =
-        await searchProducts({
-          q: category,
-          category,
-          currency: "LKR",
-          max_price: maxPrice,
-          in_stock_only: true,
-        });
+        await listCategories(
+          1,
+        );
 
       const parsedResult =
-        parseSearchProducts(
+        parseCategories(
           rawResult,
         );
 
@@ -550,28 +1065,178 @@ export async function POST(
         ok: true,
 
         message:
-          parsedResult.products
-            .length > 0
-            ? productResultMessage(
-                language,
-                parsedResult.products
-                  .length,
-                maxPrice,
-              )
-            : "I could not find available items in that category right now.",
+          language ===
+          "sinhala"
+            ? "හරි, තෑග්ග ටිකක් narrow down කරමු 🛍️ කැමති වර්ගයක් තෝරන්න."
+            : language ===
+                "singlish"
+              ? "Hari, gift eka narrow down karamu 🛍️ Category ekak select karanna. Mama lassana options pennannam."
+              : "Let’s narrow it down together 🛍️ Pick a category and I’ll bring you the nicest live Kapruka options.",
 
-        products:
-          parsedResult.products,
+        categories:
+          getFeaturedCategories(
+            parsedResult.categories,
+          ),
       });
     }
 
-    if (searchQuery) {
+    if (
+      !category &&
+      !explicitSearchQuery &&
+      !wantsCheaperOptions(
+        message,
+      ) &&
+      process.env
+        .OPENAI_API_KEY
+    ) {
+      try {
+        const aiResult =
+          await runOpenAIShoppingAgent(
+            message,
+            context,
+          );
+
+        if (
+          aiResult
+        ) {
+          return NextResponse.json(
+            aiResult,
+          );
+        }
+      } catch (
+        error
+      ) {
+        console.error(
+          "OpenAI agent failed. Using deterministic fallback:",
+          error,
+        );
+      }
+    }
+
+    const explicitMaxPrice =
+      detectMaxPrice(
+        message,
+      );
+
+    const cheaperFollowUp =
+      wantsCheaperOptions(
+        message,
+      );
+
+    const previousSearchQuery =
+      inferPreviousSearchQuery(
+        context,
+      );
+
+    const maxPrice =
+      explicitMaxPrice ??
+      (cheaperFollowUp
+        ? inferCheaperMaxPrice(
+            context,
+          )
+        : undefined);
+
+    const searchQuery =
+      explicitSearchQuery ??
+      (cheaperFollowUp
+        ? previousSearchQuery
+        : null);
+
+    if (
+      category
+    ) {
+      const categoryQuery =
+        getCategorySearchQuery(
+          category,
+        );
+
+      const rawResult =
+        await searchProducts({
+          q: categoryQuery,
+
+          category,
+
+          currency:
+            "LKR",
+
+          max_price:
+            maxPrice,
+
+          in_stock_only:
+            true,
+        });
+
+      let products =
+        filterRelevantProducts(
+          categoryQuery,
+
+          parseSearchProducts(
+            rawResult,
+          ).products,
+        );
+
+      if (
+        products.length ===
+        0
+      ) {
+        const fallbackRawResult =
+          await searchProducts({
+            q: categoryQuery,
+
+            currency:
+              "LKR",
+
+            max_price:
+              maxPrice,
+
+            in_stock_only:
+              true,
+          });
+
+        products =
+          filterRelevantProducts(
+            categoryQuery,
+
+            parseSearchProducts(
+              fallbackRawResult,
+            ).products,
+          );
+      }
+
+      return NextResponse.json({
+        ok: true,
+
+        message:
+          products.length >
+          0
+            ? productResultMessage(
+                language,
+
+                products.length,
+
+                maxPrice,
+              )
+            : "I could not find available items in that category right now. Try another category.",
+
+        products,
+      });
+    }
+
+    if (
+      searchQuery
+    ) {
       const rawResult =
         await searchProducts({
           q: searchQuery,
-          currency: "LKR",
-          max_price: maxPrice,
-          in_stock_only: true,
+
+          currency:
+            "LKR",
+
+          max_price:
+            maxPrice,
+
+          in_stock_only:
+            true,
         });
 
       const parsedResult =
@@ -579,22 +1244,29 @@ export async function POST(
           rawResult,
         );
 
+      const products =
+        filterRelevantProducts(
+          searchQuery,
+
+          parsedResult.products,
+        );
+
       return NextResponse.json({
         ok: true,
 
         message:
-          parsedResult.products
-            .length > 0
+          products.length >
+          0
             ? productResultMessage(
                 language,
-                parsedResult.products
-                  .length,
+
+                products.length,
+
                 maxPrice,
               )
             : "I could not find a matching item. Try another keyword or increase your budget.",
 
-        products:
-          parsedResult.products,
+        products,
       });
     }
 
@@ -602,27 +1274,34 @@ export async function POST(
       ok: true,
 
       message:
-        language === "sinhala"
-          ? "මට ඔබට Kapruka තෑගි සොයා දෙන්න පුළුවන්. කේක්, මල්, චොකලට් හෝ වර්ග ගැන අහන්න. 😊"
-          : language === "singlish"
-            ? "Mama oyata gifts hoyala denna puluwan. Cake, flowers, chocolates, categories gana ahanna. 😊"
-            : "I can help you search Kapruka’s live catalog. Ask for cakes, flowers, chocolates, categories, delivery, or order tracking. 😊",
+        language ===
+        "sinhala"
+          ? "මම උදව් කරන්නම් 😊 තෑග්ග කාටද, අවස්ථාව මොකක්ද, budget එක කීයද කියන්න. කේක්, මල්, චොකලට් සහ gift sets බලමු."
+          : language ===
+              "singlish"
+            ? "Mama help karannam 😊 Gift eka katada, occasion eka mokakda, budget eka keeyada kiyanna. Cake, flowers, chocolates, gift sets balamu."
+            : "I’d love to help 😊 Tell me who the gift is for, the occasion, or your budget. I can suggest cakes, flowers, chocolates, gift sets, and more.",
     });
-  } catch (error) {
+  } catch (
+    error
+  ) {
     console.error(
       "Chat request failed:",
       error,
     );
 
     if (
-      error instanceof z.ZodError
+      error instanceof
+      z.ZodError
     ) {
       return NextResponse.json(
         {
           ok: false,
+
           error:
             "Enter a valid shopping message.",
         },
+
         {
           status: 400,
         },
@@ -632,11 +1311,14 @@ export async function POST(
     return NextResponse.json(
       {
         ok: false,
+
         error:
-          error instanceof Error
+          error instanceof
+          Error
             ? error.message
             : "Unable to process your message.",
       },
+
       {
         status: 502,
       },

@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.prompt-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.prompt-scroll::-webkit-scrollbar {
+  display: none;
+}

@@ -8,7 +8,10 @@ import {
 import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
-import type { ChatApiResponse } from "@/types/chat";
+import type {
+  ChatApiResponse,
+  ShoppingChatContext,
+} from "@/types/chat";
 import type { KaprukaCategory } from "@/types/kapruka";
 
 function getOpenAIClient(): OpenAI | null {
@@ -199,7 +202,8 @@ function parseArguments(
 }
 
 export async function runOpenAIShoppingAgent(
-    message: string,
+  message: string,
+  context?: ShoppingChatContext,
 ): Promise<ChatApiResponse | null> {
     const openai =
         getOpenAIClient();
@@ -223,13 +227,39 @@ export async function runOpenAIShoppingAgent(
                         content: [
                             "You are Kapruka Gift Mate, a warm Sri Lankan shopping assistant.",
                             "Understand English, Sinhala, and Singlish.",
+
+                            "Your personality is warm, cheerful, thoughtful, and lightly witty.",
+                            "Sound like a friendly Sri Lankan gift concierge, not a robotic search engine.",
+                            "Use small natural touches such as Lovely choice, Nice pick, Shall we add a sweet extra, or Let’s make this special.",
+                            "Keep replies short and useful. Avoid long paragraphs.",
+                            "Match the customer's language style: English, Singlish, or Sinhala.",
+                            "After helping, suggest one clear next step such as checking delivery, adding a small extra, or opening the gift box.",
+                            "Use emojis sparingly: usually one or two per response.",
+
                             "Use tools for product search, category browsing, delivery-city lookup, and order-tracking requests.",
                             "For catalog searches, choose one concise product keyword.",
                             "Never create orders or claim that payment was completed.",
                             "Checkout is handled separately by the cart review screen.",
+
+                            "Use the shopping-session context to understand follow-up requests such as cheaper options, only flowers, or delivery questions.",
+
+                            context
+                                ? `Shopping-session context: ${JSON.stringify(
+                                    context,
+                                )}`
+                                : "Shopping-session context: none",
+
                             "If the user asks a general question that does not require a tool, answer briefly and helpfully.",
-                        ].join("\n"),
+                            ].join("\n"),
                     },
+
+                    ...(context?.recentMessages ?? []).map(
+                        (previousMessage) => ({
+                        role: previousMessage.role,
+                        content: previousMessage.text,
+                        }),
+                    ),
+
                     {
                         role: "user",
                         content: message,

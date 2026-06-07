@@ -5,7 +5,7 @@ import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 
 const schema = z.object({
   query: z.string().trim().min(1).max(100),
-  limit: z.number().int().min(1).max(20).optional(),
+  limit: z.number().int().min(1).max(50).optional(),
 });
 
 export async function POST(request: NextRequest) {

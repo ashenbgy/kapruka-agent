@@ -57,6 +57,10 @@ export default function Home() {
             <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
               Kapruka Gift Mate 🇱🇰
             </h1>
+
+            <p className="mt-1 text-sm text-zinc-400">
+              Your AI gift concierge for Sri Lanka
+            </p>
           </div>
 
           <button

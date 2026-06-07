@@ -16,6 +16,14 @@ interface CustomerDetailsFormProps {
   onContinue: () => void;
 }
 
+const giftMessageSuggestions = [
+  "Happy birthday! Wishing you a beautiful day filled with love. 🎉",
+
+  "Amma, oyata adarei. Me podi surprise eka oyata. 💐",
+
+  "සුභ උපන්දිනයක්! ආදරයෙන් සහ සුබ පැතුම් සමඟ. 🎂",
+];
+
 export function CustomerDetailsForm({
   onBack,
   onContinue,
@@ -41,6 +49,13 @@ export function CustomerDetailsForm({
   const [giftMessage, setGiftMessage] =
     useState(checkout.giftMessage);
 
+  const [
+    anonymousSender,
+    setAnonymousSender,
+  ] = useState(
+    checkout.anonymousSender,
+  );
+
   function submit(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -51,6 +66,7 @@ export function CustomerDetailsForm({
       sender,
       address,
       giftMessage,
+      anonymousSender,
     });
 
     onContinue();
@@ -163,6 +179,63 @@ export function CustomerDetailsForm({
               })
             }
           />
+
+          <label className="block text-sm text-zinc-300">
+            Location type
+
+            <select
+              value={
+                address.locationType
+              }
+              onChange={(event) =>
+                setAddress({
+                  ...address,
+                  locationType:
+                    event.target
+                      .value as DeliveryAddress["locationType"],
+                })
+              }
+              className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
+            >
+              <option value="house">
+                House
+              </option>
+
+              <option value="apartment">
+                Apartment
+              </option>
+
+              <option value="office">
+                Office
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+            </select>
+          </label>
+
+          <label className="block text-sm text-zinc-300">
+            Delivery instructions
+
+            <textarea
+              value={
+                address.instructions
+              }
+              onChange={(event) =>
+                setAddress({
+                  ...address,
+                  instructions:
+                    event.target.value,
+                })
+              }
+              placeholder="Call before arrival, gate details, nearby landmark..."
+              rows={3}
+              maxLength={250}
+              className="mt-2 w-full resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
+            />
+          </label>
+
         </fieldset>
 
         <fieldset className="space-y-3">
@@ -205,12 +278,48 @@ export function CustomerDetailsForm({
               })
             }
           />
+
+          <label className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-3 text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              checked={
+                anonymousSender
+              }
+              onChange={(event) =>
+                setAnonymousSender(
+                  event.target.checked,
+                )
+              }
+            />
+
+            Keep the sender anonymous for a surprise
+          </label>
+
         </fieldset>
 
         <div>
           <label className="text-sm text-zinc-300">
             Gift message
           </label>
+
+          <div className="mt-2 flex flex-wrap gap-2">
+            {giftMessageSuggestions.map(
+              (suggestion, index) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() =>
+                    setGiftMessage(
+                      suggestion,
+                    )
+                  }
+                  className="rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-left text-xs text-zinc-300 hover:border-emerald-500 hover:text-white"
+                >
+                  Suggestion {index + 1}
+                </button>
+              ),
+            )}
+          </div>
 
           <textarea
             value={giftMessage}
@@ -222,7 +331,7 @@ export function CustomerDetailsForm({
             placeholder="Happy birthday! With love..."
             rows={4}
             maxLength={300}
-            className="mt-2 w-full resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
+            className="mt-3 w-full resize-none rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
           />
 
           <p className="mt-1 text-right text-xs text-zinc-500">

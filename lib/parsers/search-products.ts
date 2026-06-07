@@ -50,6 +50,37 @@ function extractText(result: unknown): string {
   throw new Error("Kapruka search response did not contain readable text.");
 }
 
+function cleanCatalogText(
+  value: string,
+): string {
+  return value
+    .replace(
+      /N#226;n#8364;n#8220;/g,
+      "“",
+    )
+    .replace(
+      /N#226;n#8364;n#8221;/g,
+      "”",
+    )
+    .replace(
+      /\s+[“”]\s+/g,
+      " – ",
+    )
+    .replace(
+      /N#\d+;n#\d+;n#\d+;/g,
+      "",
+    )
+    .replace(
+      /n#\d+;/g,
+      "",
+    )
+    .replace(
+      /\s+/g,
+      " ",
+    )
+    .trim();
+}
+
 export function parseSearchProducts(
   result: unknown,
 ): KaprukaSearchResponse {
@@ -66,7 +97,9 @@ export function parseSearchProducts(
 
     products.push({
       id,
-      name,
+      name: cleanCatalogText(
+        name,
+      ),
       currency,
       price: Number(rawPrice.replaceAll(",", "")),
       stockLabel: stockLabel.trim(),

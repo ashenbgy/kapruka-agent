@@ -17,6 +17,7 @@ interface CheckoutState {
   sender: SenderDetails;
   address: DeliveryAddress;
   giftMessage: string;
+  anonymousSender: boolean;
 
   checkoutConfirmed: boolean;
 
@@ -41,6 +42,7 @@ interface CheckoutState {
     sender: SenderDetails;
     address: DeliveryAddress;
     giftMessage: string;
+    anonymousSender: boolean;
   }) => void;
 
   setCheckoutConfirmed: (
@@ -73,6 +75,8 @@ const emptyAddress: DeliveryAddress = {
   addressLine1: "",
   addressLine2: "",
   postalCode: "",
+  locationType: "house",
+  instructions: "",
 };
 
 export const useCheckoutStore =
@@ -86,6 +90,7 @@ export const useCheckoutStore =
     sender: emptySender,
     address: emptyAddress,
     giftMessage: "",
+    anonymousSender: false,
 
     checkoutConfirmed: false,
 
@@ -142,12 +147,14 @@ export const useCheckoutStore =
       sender,
       address,
       giftMessage,
+      anonymousSender,
     }) =>
       set({
         recipient,
         sender,
         address,
         giftMessage,
+        anonymousSender,
         checkoutConfirmed: false,
       }),
 
@@ -182,6 +189,7 @@ export const useCheckoutStore =
         sender: emptySender,
         address: emptyAddress,
         giftMessage: "",
+        anonymousSender: false,
 
         checkoutConfirmed: false,
 

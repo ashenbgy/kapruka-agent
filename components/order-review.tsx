@@ -96,10 +96,15 @@ export function OrderReview({
                         cart: items.map(
                             (item) => ({
                                 product_id: item.id,
+
                                 quantity:
-                                    item.quantity,
+                                item.quantity,
+
+                                icing_text:
+                                item.icingText?.trim() ||
+                                null,
                             }),
-                        ),
+                            ),
 
                         recipient: {
                             name:
@@ -110,18 +115,30 @@ export function OrderReview({
 
                         delivery: {
                             address,
-                            city: checkout.city,
+
+                            city:
+                                checkout.city,
+
                             location_type:
-                                "house",
+                                checkout.address
+                                .locationType,
+
                             date:
                                 checkout.deliveryDate,
+
+                            instructions:
+                                checkout.address
+                                .instructions
+                                .trim() || null,
                         },
 
                         sender: {
                             name:
                                 checkout.sender.name,
-                            anonymous: false,
-                        },
+
+                            anonymous:
+                                checkout.anonymousSender,
+                            },
 
                         gift_message:
                             checkout.giftMessage ||
@@ -222,6 +239,12 @@ export function OrderReview({
                                         item.quantity
                                     ).toLocaleString()}
                                 </span>
+
+                                {item.icingText && (
+                                    <p className="mt-1 text-xs text-amber-300">
+                                        Icing: “{item.icingText}”
+                                    </p>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -253,6 +276,17 @@ export function OrderReview({
                             }
                         </p>
                     )}
+
+                    <p>
+                        Location type:{" "}
+                        {checkout.address.locationType}
+                    </p>
+
+                    {checkout.address.instructions && (
+                        <p>
+                            Notes: {checkout.address.instructions}
+                        </p>
+                    )}
                 </SummarySection>
 
                 <SummarySection title="Recipient">
@@ -269,6 +303,13 @@ export function OrderReview({
                 <SummarySection title="Sender">
                     <p>{checkout.sender.name}</p>
                     <p>{checkout.sender.phone}</p>
+
+                    <p>
+                        Anonymous surprise:{" "}
+                        {checkout.anonymousSender
+                            ? "Yes"
+                            : "No"}
+                    </p>
 
                     {checkout.sender.email && (
                         <p>{checkout.sender.email}</p>

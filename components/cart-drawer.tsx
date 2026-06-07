@@ -12,6 +12,24 @@ type CheckoutStep =
   | "details"
   | "review";
 
+const checkoutSteps: {
+  id: CheckoutStep;
+  label: string;
+}[] = [
+  { id: "cart", label: "Cart" },
+  { id: "delivery", label: "Delivery" },
+  { id: "details", label: "Details" },
+  { id: "review", label: "Review" },
+];
+
+function looksLikeCake(
+  name: string,
+) {
+  return name
+    .toLowerCase()
+    .includes("cake");
+}
+
 export function CartDrawer() {
   const {
     items,
@@ -20,6 +38,7 @@ export function CartDrawer() {
     increaseQuantity,
     decreaseQuantity,
     removeItem,
+    updateIcingText,
     clearCart,
   } = useCartStore();
 
@@ -55,6 +74,52 @@ export function CartDrawer() {
           >
             Close
           </button>
+        </div>
+
+        <div className="mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-3">
+          <div className="grid grid-cols-4 gap-2">
+            {checkoutSteps.map((checkoutStep, index) => {
+              const activeIndex =
+                checkoutSteps.findIndex(
+                  (item) => item.id === step,
+                );
+
+              const isActive =
+                checkoutStep.id === step;
+
+              const isComplete =
+                index < activeIndex;
+
+              return (
+                <div
+                  key={checkoutStep.id}
+                  className="text-center"
+                >
+                  <div
+                    className={`mx-auto flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+                      isActive
+                        ? "bg-emerald-500 text-zinc-950"
+                        : isComplete
+                          ? "bg-emerald-950 text-emerald-300"
+                          : "bg-zinc-800 text-zinc-500"
+                    }`}
+                  >
+                    {isComplete ? "✓" : index + 1}
+                  </div>
+
+                  <p
+                    className={`mt-2 text-[11px] ${
+                      isActive
+                        ? "font-semibold text-emerald-300"
+                        : "text-zinc-500"
+                    }`}
+                  >
+                    {checkoutStep.label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {step === "delivery" && (
@@ -155,6 +220,27 @@ export function CartDrawer() {
                           Remove
                         </button>
                       </div>
+
+                      {looksLikeCake(item.name) && (
+                        <label className="mt-4 block text-xs text-zinc-300">
+                          Cake icing message
+
+                          <input
+                            value={
+                              item.icingText ?? ""
+                            }
+                            maxLength={120}
+                            onChange={(event) =>
+                              updateIcingText(
+                                item.id,
+                                event.target.value,
+                              )
+                            }
+                            placeholder="Happy Birthday Amma!"
+                            className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-400"
+                          />
+                        </label>
+                      )}
                     </article>
                   ))}
                 </div>

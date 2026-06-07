@@ -10,8 +10,16 @@ export interface SenderDetails {
   email: string;
 }
 
+export type DeliveryLocationType =
+  | "house"
+  | "apartment"
+  | "office"
+  | "other";
+
 export interface DeliveryAddress {
   addressLine1: string;
   addressLine2: string;
   postalCode: string;
+  locationType: DeliveryLocationType;
+  instructions: string;
 }

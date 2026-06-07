@@ -49,6 +49,37 @@ function extractText(result: unknown): string {
   );
 }
 
+function cleanCatalogText(
+  value: string,
+): string {
+  return value
+    .replace(
+      /N#226;n#8364;n#8220;/g,
+      "“",
+    )
+    .replace(
+      /N#226;n#8364;n#8221;/g,
+      "”",
+    )
+    .replace(
+      /\s+[“”]\s+/g,
+      " – ",
+    )
+    .replace(
+      /N#\d+;n#\d+;n#\d+;/g,
+      "",
+    )
+    .replace(
+      /n#\d+;/g,
+      "",
+    )
+    .replace(
+      /\s+/g,
+      " ",
+    )
+    .trim();
+}
+
 function matchValue(text: string, pattern: RegExp): string | undefined {
   return text.match(pattern)?.[1]?.trim();
 }
@@ -94,7 +125,9 @@ export function parseProductDetails(
 
   return {
     id,
-    name,
+    name: cleanCatalogText(
+      name,
+    ),
     currency,
     price: Number(rawPrice.replaceAll(",", "")),
     stockLabel,

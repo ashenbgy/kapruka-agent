@@ -5,6 +5,7 @@ import type { KaprukaSearchProduct } from "@/types/kapruka";
 export interface CartItem
   extends KaprukaSearchProduct {
   quantity: number;
+  icingText?: string;
 }
 
 interface CartState {
@@ -28,6 +29,11 @@ interface CartState {
 
   removeItem: (
     productId: string,
+  ) => void;
+
+  updateIcingText: (
+    productId: string,
+    icingText: string,
   ) => void;
 
   clearCart: () => void;
@@ -143,6 +149,25 @@ export const useCartStore =
         items: state.items.filter(
           (item) =>
             item.id !== productId,
+        ),
+      }));
+    },
+
+    updateIcingText: (
+      productId,
+      icingText,
+    ) => {
+      invalidateCheckout();
+
+      set((state) => ({
+        items: state.items.map(
+          (item) =>
+            item.id === productId
+              ? {
+                  ...item,
+                  icingText,
+                }
+              : item,
         ),
       }));
     },

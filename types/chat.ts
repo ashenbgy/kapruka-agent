@@ -18,6 +18,27 @@ export interface ChatMessage {
   action?: ChatAction;
 }
 
+export interface ChatContextMessage {
+  role: "user" | "assistant";
+  text: string;
+}
+
+export interface ChatContextCartItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  currency: string;
+}
+
+export interface ShoppingChatContext {
+  recentMessages: ChatContextMessage[];
+  cart: ChatContextCartItem[];
+  lastProducts: KaprukaSearchProduct[];
+  city?: string;
+  deliveryDate?: string;
+}
+
 export interface ChatApiResponse {
   ok: boolean;
   message?: string;
