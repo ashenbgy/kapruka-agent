@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Kapruka Gift Mate 🇱🇰",
+  title: "Kapruka Gift Mate",
   description:
     "A conversational shopping agent powered by Kapruka MCP.",
 };
