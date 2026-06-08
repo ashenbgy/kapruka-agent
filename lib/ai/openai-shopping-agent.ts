@@ -29,6 +29,12 @@ function getOpenAIClient(): OpenAI | null {
 }
 
 const featuredCategoryNames = [
+    "Electronics",
+    "Household",
+    "Home",
+    "Groceries",
+    "Fashion",
+    "Mobile Phones",
     "cakes",
     "flowers",
     "Chocolates",
@@ -99,7 +105,7 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] =
             function: {
                 name: "search_products",
                 description:
-                    "Search the live Kapruka catalog. Use one concise product keyword such as cake, flower, chocolate, hamper, perfume, books, or toys. Do not combine unrelated keywords.",
+                    "Search the live Kapruka catalog. Use one concise product keyword such as electronics, headphones, household, grocery, fashion, cake, flower, chocolate, perfume, books, or toys. Do not combine unrelated keywords.",
                 strict: true,
                 parameters: {
                     type: "object",
@@ -226,11 +232,11 @@ export async function runOpenAIShoppingAgent(
                     {
                         role: "system",
                         content: [
-                            "You are Kapruka Gift Mate, a warm Sri Lankan shopping assistant.",
+                            "You are Kapruka Shopping Mate, a warm Sri Lankan shopping concierge.",
                             "Understand English, Sinhala, and Singlish.",
 
                             "Your personality is warm, cheerful, thoughtful, and lightly witty.",
-                            "Sound like a friendly Sri Lankan gift concierge, not a robotic search engine.",
+                            "Sound like a friendly Sri Lankan shopping concierge, not a robotic search engine. Help with both everyday shopping and gifts.",
                             "Use small natural touches such as Lovely choice, Nice pick, Shall we add a sweet extra, or Let’s make this special.",
                             "Keep replies short and useful. Avoid long paragraphs.",
                             "Match the customer's language style: English, Singlish, or Sinhala.",

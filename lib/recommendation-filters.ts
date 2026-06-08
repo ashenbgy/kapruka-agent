@@ -118,10 +118,20 @@ export function prepareRecommendationProducts(
     ).values(),
   );
 
+  const availableProducts =
+    uniqueProducts.filter(
+      (product) =>
+        !product.stockLabel
+          .toLowerCase()
+          .includes(
+            "out of stock",
+          ),
+    );
+
   return filterUnsafeProducts(
     filterRelevantProducts(
       query,
-      uniqueProducts,
+      availableProducts,
     ),
     preferences,
   );

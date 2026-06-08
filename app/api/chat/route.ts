@@ -192,7 +192,6 @@ const searchAliases = [
     terms: [
       "flower",
       "flowers",
-      "mal",
       "mal tikak",
       "මල්",
     ],
