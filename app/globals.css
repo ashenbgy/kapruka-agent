@@ -46,3 +46,12 @@ input[type="date"] {
 .discovery-scroll::-webkit-scrollbar {
   display: none;
 }
+
+.starter-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.starter-scroll::-webkit-scrollbar {
+  display: none;
+}
