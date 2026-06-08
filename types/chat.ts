@@ -31,12 +31,21 @@ export interface ChatContextCartItem {
   currency: string;
 }
 
+export interface RecipientPreferences {
+  relationship?: string;
+  likes: string[];
+  dislikes: string[];
+  allergies: string[];
+  budgetMax?: number;
+}
+
 export interface ShoppingChatContext {
   recentMessages: ChatContextMessage[];
   cart: ChatContextCartItem[];
   lastProducts: KaprukaSearchProduct[];
   city?: string;
   deliveryDate?: string;
+  recipientPreferences?: RecipientPreferences;
 }
 
 export interface ChatApiResponse {

@@ -8,6 +8,7 @@ import {
 import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
+import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
 import type {
   ChatApiResponse,
   ShoppingChatContext,
@@ -242,6 +243,7 @@ export async function runOpenAIShoppingAgent(
                             "Checkout is handled separately by the cart review screen.",
 
                             "Use the shopping-session context to understand follow-up requests such as cheaper options, only flowers, or delivery questions.",
+                            "Respect recipient preferences. Avoid products that conflict with allergies or dislikes, and stay within the saved budget when possible.",
 
                             context
                                 ? `Shopping-session context: ${JSON.stringify(
@@ -311,6 +313,12 @@ export async function runOpenAIShoppingAgent(
                 rawArguments,
             );
 
+        const effectiveMaxPrice =
+            input.max_price ??
+            context
+                ?.recipientPreferences
+                ?.budgetMax;
+
         const rawResult =
             await searchProducts({
                 q: input.q,
@@ -318,8 +326,7 @@ export async function runOpenAIShoppingAgent(
                     input.category ??
                     undefined,
                 max_price:
-                    input.max_price ??
-                    undefined,
+                    effectiveMaxPrice,
                 currency: "LKR",
                 in_stock_only: true,
             });
@@ -329,21 +336,29 @@ export async function runOpenAIShoppingAgent(
                 rawResult,
             );
 
+        const products =
+            prepareRecommendationProducts(
+                input.q,
+                result.products,
+                context
+                    ?.recipientPreferences,
+            );
+
         const budgetText =
-            input.max_price !== null
-                ? ` under LKR ${input.max_price.toLocaleString()}`
+            effectiveMaxPrice !==
+            undefined
+                ? ` under LKR ${effectiveMaxPrice.toLocaleString()}`
                 : "";
 
         return {
             ok: true,
 
             message:
-                result.products.length > 0
-                    ? `I found ${result.products.length} live Kapruka options${budgetText}, including relevant gift suggestions from the live catalog. Add your favourites to the cart. 🎁`
-                    : "I could not find a matching item. Try another keyword or increase your budget.",
+                products.length > 0
+                    ? `I found ${products.length} live Kapruka options${budgetText}, including relevant gift suggestions from the live catalog. Add your favourites to the cart. 🎁`
+                    : "I could not find a matching item after applying your preferences. Try another keyword or adjust the budget.",
 
-            products:
-                result.products,
+            products,
         };
     }
 

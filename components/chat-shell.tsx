@@ -13,6 +13,7 @@ import { useCheckoutStore } from "@/lib/store/checkout-store";
 import type {
   ChatApiResponse,
   ChatMessage,
+  RecipientPreferences,
   ShoppingChatContext,
 } from "@/types/chat";
 
@@ -175,6 +176,17 @@ function extractBudgetSuffix(
     : "";
 }
 
+function parsePreferenceTerms(
+  value: string,
+): string[] {
+  return value
+    .split(",")
+    .map((term) =>
+      term.trim(),
+    )
+    .filter(Boolean);
+}
+
 export function ChatShell() {
   const [messages, setMessages] =
     useState<ChatMessage[]>(
@@ -214,6 +226,26 @@ export function ChatShell() {
   ] = useState<Record<string, number>>(
     {},
   );
+
+  const [
+    showPreferences,
+    setShowPreferences,
+  ] = useState(false);
+
+  const [relationship, setRelationship] =
+    useState("");
+
+  const [likes, setLikes] =
+    useState("");
+
+  const [dislikes, setDislikes] =
+    useState("");
+
+  const [allergies, setAllergies] =
+    useState("");
+
+  const [budgetMax, setBudgetMax] =
+    useState("");
 
   const {
     items,
@@ -422,6 +454,33 @@ export function ChatShell() {
 
       deliveryDate:
         deliveryDate || undefined,
+
+      recipientPreferences: {
+        relationship:
+          relationship.trim() ||
+          undefined,
+
+        likes:
+          parsePreferenceTerms(
+            likes,
+          ),
+
+        dislikes:
+          parsePreferenceTerms(
+            dislikes,
+          ),
+
+        allergies:
+          parsePreferenceTerms(
+            allergies,
+          ),
+
+        budgetMax:
+          budgetMax.trim() &&
+          Number(budgetMax) > 0
+            ? Number(budgetMax)
+            : undefined,
+      } satisfies RecipientPreferences,
     };
 
     try {
@@ -523,28 +582,158 @@ export function ChatShell() {
 
   return (
     <section className="flex h-[calc(100vh-7rem)] min-h-0 flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl">
-      <header className="shrink-0 border-b border-zinc-800 bg-zinc-900/90 px-5 py-4 backdrop-blur">
-        <p className="text-sm font-semibold text-white">
-          Kapruka Gift Mate
-        </p>
-
-        <p className="mt-1 text-xs text-zinc-400">
-          Your warm AI gift concierge for Sri Lanka
-        </p>
-
-        <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
-          <span className="rounded-full border border-emerald-900 bg-emerald-950/40 px-3 py-1 text-emerald-300">
+      <header className="relative shrink-0 border-b border-zinc-800 bg-zinc-900/90 px-4 py-3 backdrop-blur sm:px-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] text-emerald-300">
             ● Live catalog
-          </span>
+            <span className="hidden text-zinc-500 sm:inline">
+              {" "}
+              · Delivery quotes · Secure checkout
+            </span>
+          </p>
 
-          <span className="rounded-full border border-sky-900 bg-sky-950/40 px-3 py-1 text-sky-300">
-            ● Delivery quotes
-          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setShowPreferences(
+                (current) =>
+                  !current,
+              )
+            }
+            aria-label="Gift preferences"
+            className="shrink-0 rounded-full border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-200 hover:border-emerald-600 hover:text-white"
+          >
+            <span className="sm:hidden">
+              🎯
+            </span>
 
-          <span className="rounded-full border border-violet-900 bg-violet-950/40 px-3 py-1 text-violet-300">
-            ● Secure checkout
-          </span>
+            <span className="hidden sm:inline">
+              🎯 Preferences
+            </span>
+
+            {(relationship ||
+              likes ||
+              dislikes ||
+              allergies ||
+              budgetMax) && (
+              <span className="ml-1 text-emerald-300">
+                ●
+              </span>
+            )}
+          </button>
         </div>
+
+      {showPreferences && (
+        <section className="absolute left-4 right-4 top-full z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-zinc-700 bg-zinc-950 p-4 shadow-2xl sm:left-auto sm:right-5 sm:w-[36rem]">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-white">
+                Recipient preferences
+              </p>
+
+              <p className="mt-1 text-xs text-zinc-500">
+                Used only for this shopping session.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowPreferences(false)
+              }
+              className="text-xs text-zinc-400 hover:text-white"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <input
+              value={relationship}
+              onChange={(event) =>
+                setRelationship(
+                  event.target.value,
+                )
+              }
+              placeholder="Relationship: Amma"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+            />
+
+            <input
+              type="number"
+              min="1"
+              value={budgetMax}
+              onChange={(event) =>
+                setBudgetMax(
+                  event.target.value,
+                )
+              }
+              placeholder="Budget max: 6000"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+            />
+
+            <input
+              value={likes}
+              onChange={(event) =>
+                setLikes(
+                  event.target.value,
+                )
+              }
+              placeholder="Likes: flowers, chocolate"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+            />
+
+            <input
+              value={dislikes}
+              onChange={(event) =>
+                setDislikes(
+                  event.target.value,
+                )
+              }
+              placeholder="Avoid: perfume"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
+            />
+
+            <input
+              value={allergies}
+              onChange={(event) =>
+                setAllergies(
+                  event.target.value,
+                )
+              }
+              placeholder="Allergies: nuts"
+              className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500 sm:col-span-2"
+            />
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setShowPreferences(false)
+              }
+              className="flex-1 rounded-xl bg-emerald-500 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-emerald-400"
+            >
+              Save preferences
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setRelationship("");
+                setLikes("");
+                setDislikes("");
+                setAllergies("");
+                setBudgetMax("");
+              }}
+              className="rounded-xl border border-zinc-700 px-4 py-2 text-xs text-zinc-300 hover:text-white"
+            >
+              Clear
+            </button>
+          </div>
+        </section>
+      )}
+
       </header>
 
       <div
@@ -599,7 +788,7 @@ export function ChatShell() {
               ))}
             </div>
 
-            <div className="mt-5 border-t border-zinc-800 pt-4">
+            <div className="mt-5 hidden border-t border-zinc-800 pt-4 sm:block">
               <p className="text-xs font-semibold text-zinc-300">
                 Curated gift paths
               </p>

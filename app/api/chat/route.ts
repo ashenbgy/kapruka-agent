@@ -16,10 +16,10 @@ import { parseSearchProducts } from "@/lib/parsers/search-products";
 
 import type {
   KaprukaCategory,
-  KaprukaSearchProduct,
 } from "@/types/kapruka";
 
 import { runOpenAIShoppingAgent } from "@/lib/ai/openai-shopping-agent";
+import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
 
 const contextMessageSchema = z.object({
   role: z.enum([
@@ -134,6 +134,39 @@ const schema = z.object({
         .string()
         .trim()
         .max(20)
+        .optional(),
+
+      recipientPreferences: z
+        .object({
+          relationship: z
+            .string()
+            .trim()
+            .max(100)
+            .optional(),
+
+          likes: z
+            .array(
+              z.string().trim().max(100),
+            )
+            .max(20),
+
+          dislikes: z
+            .array(
+              z.string().trim().max(100),
+            )
+            .max(20),
+
+          allergies: z
+            .array(
+              z.string().trim().max(100),
+            )
+            .max(20),
+
+          budgetMax: z
+            .number()
+            .positive()
+            .optional(),
+        })
         .optional(),
     })
     .optional(),
@@ -755,46 +788,6 @@ function getFeaturedCategories(
     );
 }
 
-function filterRelevantProducts(
-  query: string,
-  products:
-    KaprukaSearchProduct[],
-): KaprukaSearchProduct[] {
-  if (
-    query !== "flower"
-  ) {
-    return products;
-  }
-
-  return products.filter(
-    (product) => {
-      const name =
-        product.name.toLowerCase();
-
-      const looksLikeFlower =
-        name.includes(
-          "flower",
-        ) ||
-        name.includes(
-          "rose",
-        ) ||
-        name.includes(
-          "bouquet",
-        );
-
-      const looksLikeCake =
-        name.includes(
-          "cake",
-        );
-
-      return (
-        looksLikeFlower &&
-        !looksLikeCake
-      );
-    },
-  );
-}
-
 function getCategorySearchQuery(
   category: string,
 ): string {
@@ -1134,7 +1127,9 @@ export async function POST(
         ? inferCheaperMaxPrice(
             context,
           )
-        : undefined);
+        : context
+            ?.recipientPreferences
+            ?.budgetMax);
 
     const searchQuery =
       explicitSearchQuery ??
@@ -1167,12 +1162,15 @@ export async function POST(
         });
 
       let products =
-        filterRelevantProducts(
+        prepareRecommendationProducts(
           categoryQuery,
 
           parseSearchProducts(
             rawResult,
           ).products,
+
+          context
+            ?.recipientPreferences,
         );
 
       if (
@@ -1194,12 +1192,15 @@ export async function POST(
           });
 
         products =
-          filterRelevantProducts(
+          prepareRecommendationProducts(
             categoryQuery,
 
             parseSearchProducts(
               fallbackRawResult,
             ).products,
+
+            context
+              ?.recipientPreferences,
           );
       }
 
@@ -1245,10 +1246,13 @@ export async function POST(
         );
 
       const products =
-        filterRelevantProducts(
+        prepareRecommendationProducts(
           searchQuery,
 
           parsedResult.products,
+
+          context
+            ?.recipientPreferences,
         );
 
       return NextResponse.json({
