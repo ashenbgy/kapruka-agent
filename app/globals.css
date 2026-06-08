@@ -33,3 +33,7 @@ body {
 .prompt-scroll::-webkit-scrollbar {
   display: none;
 }
+
+input[type="date"] {
+  color-scheme: dark;
+}
