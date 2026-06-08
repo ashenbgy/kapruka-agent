@@ -35,55 +35,101 @@ const initialMessages: ChatMessage[] = [
 
 const starterCards = [
   {
+    icon: "🛍️",
+    title: "Shop for myself",
+    description:
+      "Browse useful products for everyday needs.",
+    prompt:
+      "I am shopping for myself",
+  },
+  {
+    icon: "📱",
+    title: "Electronics",
+    description:
+      "Explore useful tech and accessories.",
+    prompt:
+      "Show me electronics",
+  },
+  {
+    icon: "🏠",
+    title: "Home essentials",
+    description:
+      "Find practical items for the home.",
+    prompt:
+      "Show me home essentials",
+  },
+  {
     icon: "🎂",
     title: "Birthday surprise",
-    description: "Find a celebration cake under Rs. 8,000.",
-    prompt: "Find a birthday cake under Rs. 8000",
+    description:
+      "Find a celebration cake under Rs. 8,000.",
+    prompt:
+      "Find a birthday cake under Rs. 8000",
   },
   {
     icon: "💐",
     title: "Flowers for Amma",
-    description: "Browse warm flower-inspired gifts for Amma.",
-    prompt: "Show me flowers for Amma",
+    description:
+      "Browse warm flower-inspired gifts for Amma.",
+    prompt:
+      "Show me flowers for Amma",
   },
   {
     icon: "🎁",
     title: "Gift under Rs. 5,000",
-    description: "Discover thoughtful budget-friendly picks.",
-    prompt: "Show me gifts under Rs. 5000",
+    description:
+      "Discover thoughtful budget-friendly picks.",
+    prompt:
+      "Show me gifts under Rs. 5000",
   },
 ];
 
-const bundleIdeas = [
+const discoveryPaths = [
+  {
+    icon: "🛒",
+    title: "Everyday shopping",
+    description:
+      "Browse useful products for yourself.",
+    prompt:
+      "I am shopping for myself",
+  },
   {
     icon: "🌸",
     title: "Amma’s Little Surprise",
-    description: "Start with flowers, then add a sweet extra.",
-    prompt: "Show me flowers for Amma",
+    description:
+      "Start with flowers, then add a sweet extra.",
+    prompt:
+      "Show me flowers for Amma",
   },
   {
     icon: "🎉",
     title: "Birthday Celebration",
-    description: "Pick a cake and add a personal icing message.",
-    prompt: "Find a birthday cake under Rs. 8000",
+    description:
+      "Pick a cake and add a personal icing message.",
+    prompt:
+      "Find a birthday cake under Rs. 8000",
   },
   {
-    icon: "❤️",
-    title: "Long-distance Hug",
-    description: "Explore warm gift ideas with delivery support.",
-    prompt: "Show me gift options",
+    icon: "⚡",
+    title: "Need it quickly",
+    description:
+      "Start with delivery and narrow down safe options.",
+    prompt:
+      "I need something urgent today",
   },
 ];
 
 const quickPrompts = [
+  "Show me electronics",
+  "Show me home essentials",
+  "Show me groceries",
+  "Find headphones under Rs. 10000",
   "Find a birthday cake under Rs. 8000",
   "Show me flowers for Amma",
-  "What categories do you have?",
   "Can you deliver to Kandy?",
   "Track my order",
   "Amma ta flowers tikak ona",
   "අම්මාට මල් බලන්න",
-  "කේක් බලන්න",
 ];
 
 const ordinalIndexes: Record<
@@ -269,7 +315,7 @@ export function ChatShell() {
     addItem(product);
 
     showToast(
-      `Lovely choice! ${product.name} is in your gift box 🎁`,
+      `Nice pick! ${product.name} is in your cart 🛒`,
     );
   }
 
@@ -325,7 +371,7 @@ export function ChatShell() {
 
       appendLocalExchange(
         text,
-        `Lovely pick! ${product.name} is in your gift box 🎁 Shall we add a small extra, or check delivery?`,
+        `Nice pick! ${product.name} is in your cart 🛒 Would you like another item, or should we check delivery?`,
       );
 
       return true;
@@ -360,7 +406,7 @@ export function ChatShell() {
 
       appendLocalExchange(
         text,
-        `Done — ${product.name} is out of the gift box. Shall we find a better match? 😊`,
+        `Done - ${product.name} is out of the cart. Shall we find a better match? 😊`,
       );
 
       return true;
@@ -600,7 +646,7 @@ export function ChatShell() {
                   !current,
               )
             }
-            aria-label="Gift preferences"
+            aria-label="Shopping preferences"
             className="shrink-0 rounded-full border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs font-semibold text-zinc-200 hover:border-emerald-600 hover:text-white"
           >
             <span className="sm:hidden">
@@ -628,11 +674,11 @@ export function ChatShell() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white">
-                Recipient preferences
+                Shopping preferences
               </p>
 
               <p className="mt-1 text-xs text-zinc-500">
-                Used only for this shopping session.
+                Used only for this session to improve recommendations.
               </p>
             </div>
 
@@ -655,7 +701,7 @@ export function ChatShell() {
                   event.target.value,
                 )
               }
-              placeholder="Relationship: Amma"
+              placeholder="Recipient, optional: Amma"
               className="rounded-xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-xs text-white outline-none focus:border-emerald-500"
             />
 
@@ -762,7 +808,7 @@ export function ChatShell() {
               Start with a little inspiration
             </p>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {starterCards.map((card) => (
                 <button
                   key={card.title}
@@ -790,37 +836,43 @@ export function ChatShell() {
 
             <div className="mt-5 hidden border-t border-zinc-800 pt-4 sm:block">
               <p className="text-xs font-semibold text-zinc-300">
-                Curated gift paths
+                Popular shopping paths
               </p>
 
-              <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
-                {bundleIdeas.map((bundle) => (
-                  <button
-                    key={bundle.title}
-                    type="button"
-                    onClick={() =>
-                      void sendMessage(bundle.prompt)
-                    }
-                    disabled={loading}
-                    className="min-w-56 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-left transition hover:border-emerald-700 disabled:opacity-50"
-                  >
-                    <span className="text-2xl">
-                      {bundle.icon}
-                    </span>
+              <div className="relative mt-3">
+                <div className="discovery-scroll flex gap-3 overflow-x-auto pb-1 pr-10">
+                  {discoveryPaths.map((bundle) => (
+                    <button
+                      key={bundle.title}
+                      type="button"
+                      onClick={() =>
+                        void sendMessage(
+                          bundle.prompt,
+                        )
+                      }
+                      disabled={loading}
+                      className="min-w-56 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 text-left transition hover:border-emerald-700 disabled:opacity-50"
+                    >
+                      <span className="text-2xl">
+                        {bundle.icon}
+                      </span>
 
-                    <span className="mt-2 block text-sm font-semibold text-white">
-                      {bundle.title}
-                    </span>
+                      <span className="mt-2 block text-sm font-semibold text-white">
+                        {bundle.title}
+                      </span>
 
-                    <span className="mt-1 block text-xs leading-5 text-zinc-400">
-                      {bundle.description}
-                    </span>
+                      <span className="mt-1 block text-xs leading-5 text-zinc-400">
+                        {bundle.description}
+                      </span>
 
-                    <span className="mt-3 block text-xs font-semibold text-emerald-300">
-                      Explore bundle →
-                    </span>
-                  </button>
-                ))}
+                      <span className="mt-3 block text-xs font-semibold text-emerald-300">
+                        Explore →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-zinc-950 to-transparent" />
               </div>
             </div>
           </section>
@@ -1043,7 +1095,7 @@ export function ChatShell() {
                 event.target.value,
               )
             }
-            placeholder="Ask for a gift, cake, flowers, delivery, or tracking..."
+            placeholder="Ask for electronics, groceries, gifts, delivery, or tracking..."
             className="flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-emerald-400"
           />
 

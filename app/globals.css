@@ -37,3 +37,12 @@ body {
 input[type="date"] {
   color-scheme: dark;
 }
+
+.discovery-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.discovery-scroll::-webkit-scrollbar {
+  display: none;
+}

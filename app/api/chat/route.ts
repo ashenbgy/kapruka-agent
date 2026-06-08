@@ -303,9 +303,108 @@ const searchAliases = [
 
     query: "books",
   },
+
+    {
+    terms: [
+      "electronics",
+      "electronic",
+      "tech",
+    ],
+
+    query:
+      "electronics",
+  },
+
+  {
+    terms: [
+      "phone",
+      "phones",
+      "mobile",
+      "smartphone",
+    ],
+
+    query:
+      "mobile phone",
+  },
+
+  {
+    terms: [
+      "headphone",
+      "headphones",
+      "earphone",
+      "earphones",
+      "earbuds",
+    ],
+
+    query:
+      "headphones",
+  },
+
+  {
+    terms: [
+      "charger",
+      "chargers",
+      "power bank",
+    ],
+
+    query:
+      "charger",
+  },
+
+  {
+    terms: [
+      "home essentials",
+      "household",
+      "kitchen",
+      "home items",
+    ],
+
+    query:
+      "household",
+  },
+
+  {
+    terms: [
+      "grocery",
+      "groceries",
+      "daily essentials",
+      "daily needs",
+    ],
+
+    query:
+      "grocery",
+  },
+
+  {
+    terms: [
+      "fashion",
+      "clothes",
+      "clothing",
+    ],
+
+    query:
+      "fashion",
+  },
+
+  {
+    terms: [
+      "perfume",
+      "perfumes",
+      "fragrance",
+    ],
+
+    query:
+      "perfume",
+  },
 ];
 
 const featuredCategoryNames = [
+  "Electronics",
+  "Household",
+  "Home",
+  "Groceries",
+  "Fashion",
+  "Mobile Phones",
   "cakes",
   "flowers",
   "Chocolates",
@@ -376,6 +475,27 @@ const categorySearchAliases: Record<
 
   bestsellers:
     "gift",
+
+    electronics:
+    "electronics",
+
+  household:
+    "household",
+
+  home:
+    "household",
+
+  groceries:
+    "grocery",
+
+  grocery:
+    "grocery",
+
+  fashion:
+    "fashion",
+
+  "mobile phones":
+    "mobile phone",
 };
 
 function detectLanguage(
@@ -438,6 +558,29 @@ function isGreeting(
     "හෙලෝ",
   ].includes(
     normalized,
+  );
+}
+
+function wantsEverydayShoppingHelp(
+  message: string,
+): boolean {
+  const normalized =
+    message.toLowerCase();
+
+  return [
+    "shopping for myself",
+    "shop for myself",
+    "buy for myself",
+    "something for myself",
+    "browse products",
+    "everyday shopping",
+    "daily needs",
+    "what can i buy",
+  ].some(
+    (phrase) =>
+      normalized.includes(
+        phrase,
+      ),
   );
 }
 
@@ -767,24 +910,56 @@ function getFeaturedCategories(
       ),
     );
 
-  return categories
-    .filter(
-      (category) =>
-        featuredOrder.has(
-          category.name.toLowerCase(),
-        ),
-    )
+  return [...categories]
     .sort(
       (
         first,
         second,
-      ) =>
-        (featuredOrder.get(
-          first.name.toLowerCase(),
-        ) ?? 999) -
-        (featuredOrder.get(
-          second.name.toLowerCase(),
-        ) ?? 999),
+      ) => {
+        const firstIndex =
+          featuredOrder.get(
+            first.name.toLowerCase(),
+          );
+
+        const secondIndex =
+          featuredOrder.get(
+            second.name.toLowerCase(),
+          );
+
+        if (
+          firstIndex !==
+            undefined &&
+          secondIndex !==
+            undefined
+        ) {
+          return (
+            firstIndex -
+            secondIndex
+          );
+        }
+
+        if (
+          firstIndex !==
+          undefined
+        ) {
+          return -1;
+        }
+
+        if (
+          secondIndex !==
+          undefined
+        ) {
+          return 1;
+        }
+
+        return first.name.localeCompare(
+          second.name,
+        );
+      },
+    )
+    .slice(
+      0,
+      28,
     );
 }
 
@@ -796,6 +971,119 @@ function getCategorySearchQuery(
       category.toLowerCase()
     ] ?? category
   );
+}
+
+function getSituationIntro(
+  message: string,
+): string | null {
+  const normalized =
+    message.toLowerCase();
+
+  if (
+    normalized.includes(
+      "broke up",
+    ) ||
+    normalized.includes(
+      "breakup",
+    ) ||
+    normalized.includes(
+      "apologize",
+    ) ||
+    normalized.includes(
+      "sorry gift",
+    )
+  ) {
+    return [
+      "Aiyo 💔 Let’s keep it thoughtful and simple.",
+      "Flowers are a good start. A short note card can make it feel more personal.",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes(
+      "last minute",
+    ) ||
+    normalized.includes(
+      "urgent",
+    ) ||
+    normalized.includes(
+      "today",
+    )
+  ) {
+    return [
+      "No panic — let’s find a practical option quickly. ⚡",
+      "We should confirm delivery before checkout.",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes(
+      "for myself",
+    )
+  ) {
+    return "Nice — let’s find something useful for you. 🛍️";
+  }
+
+  return null;
+}
+
+function addSituationIntro(
+  message: string,
+  responseText: string,
+): string {
+  const intro =
+    getSituationIntro(
+      message,
+    );
+
+  return intro
+    ? `${intro}\n\n${responseText}`
+    : responseText;
+}
+
+function getSituationOnlyReply(
+  message: string,
+): string | null {
+  const normalized =
+    message.toLowerCase();
+
+  if (
+    normalized.includes(
+      "broke up",
+    ) ||
+    normalized.includes(
+      "breakup",
+    ) ||
+    normalized.includes(
+      "apologize",
+    )
+  ) {
+    return [
+      "Aiyo 💔 Let’s keep it thoughtful and simple.",
+      "Flowers and a short note card would be my pick.",
+      "Shall I show you flower options?",
+    ].join("\n");
+  }
+
+  if (
+    normalized.includes(
+      "not sure",
+    ) ||
+    normalized.includes(
+      "recommend something",
+    ) ||
+    normalized.includes(
+      "suggest something",
+    )
+  ) {
+    return [
+      "I can help with that 😊",
+      "Is this for yourself or someone else?",
+      "Tell me your budget and what kind of item you have in mind.",
+    ].join("\n");
+  }
+
+  return null;
 }
 
 function greetingMessage(
@@ -915,6 +1203,11 @@ export async function POST(
         message,
       );
 
+    const everydayShoppingHelp =
+      wantsEverydayShoppingHelp(
+        message,
+      );
+
     const categoryHelp =
       wantsCategories(
         message,
@@ -942,6 +1235,23 @@ export async function POST(
           greetingMessage(
             language,
           ),
+      });
+    }
+
+    const situationOnlyReply =
+      getSituationOnlyReply(
+        message,
+      );
+
+    if (
+      situationOnlyReply &&
+      !explicitSearchQuery
+    ) {
+      return NextResponse.json({
+        ok: true,
+
+        message:
+          situationOnlyReply,
       });
     }
 
@@ -995,6 +1305,38 @@ export async function POST(
 
         deliveryCities:
           parsedResult.cities,
+      });
+    }
+
+    if (
+      everydayShoppingHelp
+    ) {
+      const rawResult =
+        await listCategories(
+          1,
+        );
+
+      const parsedResult =
+        parseCategories(
+          rawResult,
+        );
+
+      return NextResponse.json({
+        ok: true,
+
+        message:
+          language ===
+          "sinhala"
+            ? "ඔබටම ගන්න දෙයක් හොයමු 🛍️ කැමති වර්ගයක් තෝරන්න."
+            : language ===
+                "singlish"
+              ? "Hari, oyata useful deyak hoyamu 🛍️ Category ekak select karanna."
+              : "Nice — let’s find something useful for you 🛍️ Pick a category and I’ll show live Kapruka options.",
+
+        categories:
+          getFeaturedCategories(
+            parsedResult.categories,
+          ),
       });
     }
 
@@ -1210,12 +1552,16 @@ export async function POST(
         message:
           products.length >
           0
-            ? productResultMessage(
-                language,
+            ? addSituationIntro(
+                message,
 
-                products.length,
+                productResultMessage(
+                  language,
 
-                maxPrice,
+                  products.length,
+
+                  maxPrice,
+                ),
               )
             : "I could not find available items in that category right now. Try another category.",
 
@@ -1261,12 +1607,16 @@ export async function POST(
         message:
           products.length >
           0
-            ? productResultMessage(
-                language,
+            ? addSituationIntro(
+                message,
 
-                products.length,
+                productResultMessage(
+                  language,
 
-                maxPrice,
+                  products.length,
+
+                  maxPrice,
+                ),
               )
             : "I could not find a matching item. Try another keyword or increase your budget.",
 
@@ -1280,11 +1630,11 @@ export async function POST(
       message:
         language ===
         "sinhala"
-          ? "මම උදව් කරන්නම් 😊 තෑග්ග කාටද, අවස්ථාව මොකක්ද, budget එක කීයද කියන්න. කේක්, මල්, චොකලට් සහ gift sets බලමු."
+          ? "මම උදව් කරන්නම් 😊 ඔබ සොයන්නේ මොනවාද, budget එක කීයද, නැත්නම් තෑග්ග කාටද කියන්න. Electronics, home items, කේක්, මල් සහ තවත් දේවල් බලමු."
           : language ===
               "singlish"
-            ? "Mama help karannam 😊 Gift eka katada, occasion eka mokakda, budget eka keeyada kiyanna. Cake, flowers, chocolates, gift sets balamu."
-            : "I’d love to help 😊 Tell me who the gift is for, the occasion, or your budget. I can suggest cakes, flowers, chocolates, gift sets, and more.",
+            ? "Mama help karannam 😊 Oyata monawada one, budget eka keeyada, nathnam gift eka katada kiyanna. Electronics, home items, cakes, flowers saha thawath dewal balamu."
+            : "I’d love to help 😊 Tell me what you are shopping for, your budget, or who the gift is for. I can help with everyday products, electronics, home items, cakes, flowers, and more.",
     });
   } catch (
     error
