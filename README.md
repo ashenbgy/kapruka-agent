@@ -99,6 +99,26 @@ Remove cake
 Can you deliver to Kandy?
 ```
 
+### 🎯 Recipient preferences and safer recommendations
+
+Customers can optionally add session-only gift preferences:
+
+* Relationship
+* Likes
+* Dislikes
+* Allergies
+* Maximum budget
+
+The agent uses these preferences to:
+
+* Apply the saved budget automatically
+* Remove products that match allergy terms
+* Remove disliked products
+* Remove duplicate recommendations
+* Filter clearly unrelated products before displaying cards
+
+Preferences are stored only for the current shopping session.
+
 ### 🛒 Multi-item gift box
 
 Customers can:
@@ -280,6 +300,8 @@ npm run build
 * Delivery must be validated before checkout.
 * Do not commit `.env.local` or API keys to GitHub.
 * Product reads use caching to reduce unnecessary MCP traffic.
+* Recipient preferences are session-only and are not permanently stored.
+* Recommendations are filtered against customer allergies and dislikes before product cards are shown.
 
 ## Challenge Highlights
 
@@ -291,6 +313,8 @@ This project directly addresses key Kapruka Agent Challenge bonus areas:
 🎁 Gift messaging
 💬 Singlish conversation
 🇱🇰 Sinhala-language support
+🎯 Session-only recipient preferences
+🛡️ Safer recommendations with allergy and dislike filtering
 ```
 
 ## Future Improvements
