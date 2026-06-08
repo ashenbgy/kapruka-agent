@@ -26,14 +26,14 @@ function getRecommendation(
   if (product.price <= 5000) {
     return {
       label: "Budget pick",
-      reason: "A thoughtful gift at a friendly price.",
+      reason: "A useful option at a friendly price.",
     };
   }
 
   if (product.price >= 10000) {
     return {
       label: "Premium choice",
-      reason: "A memorable option for an extra-special surprise.",
+      reason: "A premium live-catalog option worth considering.",
     };
   }
 
@@ -56,8 +56,8 @@ function getRecommendation(
   }
 
   return {
-    label: "Gift Mate pick",
-    reason: "A versatile live-catalog option worth considering.",
+    label: "Shopping Mate pick",
+    reason: "A useful live-catalog option worth considering.",
   };
 }
 
@@ -181,6 +181,9 @@ export function ProductCard({
       <div className="relative flex h-52 items-center justify-center overflow-hidden bg-zinc-800">
         <span className="absolute left-3 top-3 z-10 rounded-full border border-emerald-400/30 bg-zinc-950/85 px-3 py-1 text-xs font-semibold text-emerald-300 shadow-lg backdrop-blur">
           {recommendation.label}
+          <span className="sr-only">
+            {": "}
+          </span>
         </span>
         {imageUrl ? (
           <img

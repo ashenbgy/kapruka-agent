@@ -595,6 +595,7 @@ function wantsGenericGiftHelp(
     "find gifts",
     "gift ideas",
     "recommend a gift",
+    "small gift",
     "gifts under",
     "gift under",
     "thagga",
@@ -909,7 +910,41 @@ function getFeaturedCategories(
       ),
     );
 
-  return [...categories]
+  const uniqueCategories =
+  Array.from(
+    new Map(
+      categories.map(
+        (category) => [
+          category.name
+            .toLowerCase()
+            .trim(),
+          category,
+        ],
+      ),
+    ).values(),
+  );
+
+return uniqueCategories
+    .filter((category) => {
+      const normalized =
+        category.name
+          .toLowerCase()
+          .trim();
+
+      const blockedCategories = [
+        "adult products",
+        "automobile",
+        "ayurvedic",
+        "bicycle",
+        "bridetobe",
+        "childrens",
+        "childrensday",
+      ];
+
+      return !blockedCategories.includes(
+        normalized,
+      );
+    })
     .sort(
       (
         first,
@@ -926,10 +961,8 @@ function getFeaturedCategories(
           );
 
         if (
-          firstIndex !==
-            undefined &&
-          secondIndex !==
-            undefined
+          firstIndex !== undefined &&
+          secondIndex !== undefined
         ) {
           return (
             firstIndex -
@@ -938,15 +971,13 @@ function getFeaturedCategories(
         }
 
         if (
-          firstIndex !==
-          undefined
+          firstIndex !== undefined
         ) {
           return -1;
         }
 
         if (
-          secondIndex !==
-          undefined
+          secondIndex !== undefined
         ) {
           return 1;
         }
@@ -958,7 +989,7 @@ function getFeaturedCategories(
     )
     .slice(
       0,
-      28,
+      20,
     );
 }
 

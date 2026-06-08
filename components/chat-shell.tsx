@@ -808,7 +808,7 @@ export function ChatShell() {
               Start with a little inspiration
             </p>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="starter-scroll mt-4 flex gap-3 overflow-x-auto pb-1 pr-8 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pr-0 xl:grid-cols-3">
               {starterCards.map((card) => (
                 <button
                   key={card.title}
@@ -817,13 +817,13 @@ export function ChatShell() {
                     void sendMessage(card.prompt)
                   }
                   disabled={loading}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-emerald-600 hover:bg-zinc-900 disabled:opacity-50"
+                  className="min-w-56 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 text-left transition hover:-translate-y-0.5 hover:border-emerald-600 hover:bg-zinc-900 disabled:opacity-50 sm:min-w-0 sm:p-4"
                 >
-                  <span className="text-3xl">
+                  <span className="text-2xl sm:text-3xl">
                     {card.icon}
                   </span>
 
-                  <span className="mt-3 block font-semibold text-white">
+                  <span className="mt-2 block text-sm font-semibold text-white sm:mt-3 sm:text-base">
                     {card.title}
                   </span>
 
@@ -834,7 +834,7 @@ export function ChatShell() {
               ))}
             </div>
 
-            <div className="mt-5 hidden border-t border-zinc-800 pt-4 sm:block">
+            <div className="mt-5 border-t border-zinc-800 pt-4">
               <p className="text-xs font-semibold text-zinc-300">
                 Popular shopping paths
               </p>
