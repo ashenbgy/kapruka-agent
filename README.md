@@ -1,8 +1,8 @@
 # Kapruka Gift Mate 🇱🇰
 
-A full-screen multilingual AI shopping concierge built for the **Kapruka Agent Challenge 2026**.
+A full‑screen multilingual AI shopping concierge built for the **Kapruka Agent Challenge 2026**. It goes beyond basic product search with a wishlist, voice control, seasonal touches and accessibility features, turning shopping into a guided, personalised conversation.
 
-Kapruka Gift Mate helps customers discover thoughtful gifts, browse Kapruka’s live catalog, build a multi-item gift box, confirm delivery availability, and create a secure guest-checkout payment link.
+Kapruka Gift Mate helps customers discover thoughtful gifts, browse Kapruka’s live catalogue, build a multi‑item gift box, save favourites to a shareable wishlist, confirm delivery availability, personalise packaging and delivery preferences and create a secure guest‑checkout payment link.
 
 ## Live Demo
 
@@ -65,7 +65,7 @@ Product discovery
 * Six initial cards with a **Show more options** action
 * Product-detail caching and in-progress request deduplication
 
-### 🇱🇰 English, Singlish, and Sinhala support
+### 🇱🇰 English, Singlish, Sinhala and Tamil support
 
 Example prompts:
 
@@ -130,6 +130,15 @@ Customers can:
 * Continue browsing without the drawer opening after every add
 * Add a cake icing message for cake products
 
+### ⭐ Wishlist & Social Sharing
+
+Sometimes you want to save a product for later or get feedback from family before purchasing. The Gift Mate includes a persistent wishlist drawer:
+
+* Add items to your wishlist from any product card using the star (⭐) button.
+* Open the wishlist drawer via the star icon in the header to review saved items.
+* Move items to the cart or remove them from the wishlist.
+* Share your wishlist with friends via a copy‑able link to gather opinions over WhatsApp, email or social media.
+
 ### 🚚 Delivery validation
 
 * Canonical Kapruka delivery-city autocomplete
@@ -139,6 +148,10 @@ Customers can:
 * Delivery-fee display
 * Perishable-item warnings
 * Delivery-state reset when the cart, city, or date changes
+
+### 🗣️ Voice input & output
+
+Gift Mate supports hands‑free shopping. Use the microphone (🎤) to dictate queries, and toggle the speaker (🔊/🔇) to hear the assistant’s responses via the browser’s built‑in text‑to‑speech. These features leverage the Web Speech API for accessibility.
 
 ### 🎁 Gift-specific checkout
 
@@ -158,6 +171,10 @@ Customers can add:
   * Other
 * Delivery instructions
 
+### 🎀 Packaging & Delivery Preferences
+
+During checkout you can customise how your gifts arrive. Choose between standard packaging, gift wrapping, gift boxes or custom packaging, and select a preferred delivery time slot (morning, afternoon or evening). These preferences are included in your order instructions.
+
 ### 🧾 End-to-end guest checkout
 
 * Multi-step checkout progress indicator
@@ -168,6 +185,18 @@ Customers can add:
 * Explicit confirmation before creating an order
 * Secure Kapruka click-to-pay link
 * Order tracking
+
+### 📋 Analytics & A/B Testing
+
+The demo instruments key interactions (message sends, add‑to‑cart actions, voice toggles) into a lightweight client‑side analytics module. A simple dashboard is available at `/analytics` to view event counts and recent activity. Users are randomly assigned to experiment groups “A” or “B” for future testing.
+
+### 🎊 Seasonal themes & Surprise gifts
+
+Gift Mate celebrates Sri Lankan festivals with tailored prompts and guidance. A dedicated starter card highlights **Seasonal gifts**, surfacing curated collections during Avurudu, Vesak, Valentine’s Day or Ramadan. Quick prompts also include **Surprise me with a gift**, inviting the assistant to pick a random live‑catalog item — a playful touch that gamifies discovery.
+
+### 🙋 Help & support
+
+If you get stuck, open the **Help & Support** drawer (❓) from the header. It contains answers to common questions (e.g., how to track an order or accepted payment methods) and provides Kapruka’s hotline for human assistance.
 
 ## Example Demo Journey
 

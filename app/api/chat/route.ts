@@ -175,7 +175,8 @@ const schema = z.object({
 type Language =
   | "english"
   | "singlish"
-  | "sinhala";
+  | "sinhala"
+  | "tamil";
 
 const searchAliases = [
   {
@@ -394,6 +395,40 @@ const searchAliases = [
 
     query:
       "perfume",
+  },
+
+  // Tamil language aliases
+  {
+    terms: ["கேக்", "கேக்குகள்"],
+    query: "cake",
+  },
+  {
+    terms: ["மலர்", "மலர்கள்"],
+    query: "flower",
+  },
+  {
+    terms: ["சாக்லேட்", "சாக்லேட்கள்"],
+    query: "chocolates",
+  },
+  {
+    terms: ["பரிசு", "பரிசுகள்", "உபயம்"],
+    query: "gift",
+  },
+  {
+    terms: ["பிறந்த நாள்"],
+    query: "birthday",
+  },
+  {
+    terms: ["திருமணம்"],
+    query: "wedding",
+  },
+  {
+    terms: ["குழந்தை", "குழந்தைகள்"],
+    query: "baby",
+  },
+  {
+    terms: ["பொம்மை", "பொம்மைகள்", "ப игрушка"],
+    query: "toys",
   },
 ];
 
@@ -1151,6 +1186,19 @@ function greetingMessage(
     ].join("\n");
   }
 
+  if (language === "tamil") {
+    return [
+      "வணக்கம்! 👋 நான் உங்கள் Kapruka Gift Mate.",
+      "",
+      "உங்களுக்குத் தேவையான பரிசைப் பற்றி, நிகழ்ச்சி அல்லது செலவு வரம்பைப் பற்றிச் சொல்லுங்கள்.",
+      "",
+      "உதாரணம்:",
+      "• ரூ. 8,000 க்கும் குறைவான பிறந்த நாள் கேக் காட்டு",
+      "• அம்மாவுக்கு மலர்கள் காட்டு",
+      "• வகைகள் எவை உள்ளன?",
+    ].join("\n");
+  }
+
   return [
     "Ayubowan! 👋 I’m your Kapruka Gift Mate.",
     "",
@@ -1193,6 +1241,14 @@ function productResultMessage(
       `Lassana Kapruka options ${productCount}k hambuna${priceNote}. 🎁`,
       "Kamathi eka gift box ekata add karanna.",
       "Budget eka tikak adu karanna one nam “show cheaper ones” kiyanna.",
+    ].join("\n");
+  }
+
+  if (language === "tamil") {
+    return [
+      `I found ${productCount} lovely Kapruka options${priceNote}. 🎁`,
+      "Add your favourite to the gift box.",
+      "To see cheaper options say “show cheaper ones”.",
     ].join("\n");
   }
 

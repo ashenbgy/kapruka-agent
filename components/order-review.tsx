@@ -126,10 +126,23 @@ export function OrderReview({
                             date:
                                 checkout.deliveryDate,
 
-                            instructions:
-                                checkout.address
-                                .instructions
-                                .trim() || null,
+                            // Combine address instructions with packaging and time-slot notes
+                            instructions: (() => {
+                                const parts: string[] = [];
+                                const addrInstr = checkout.address.instructions.trim();
+                                if (addrInstr) {
+                                    parts.push(addrInstr);
+                                }
+                                // include packaging option if non-standard
+                                if (checkout.packagingOption && checkout.packagingOption !== "standard") {
+                                    parts.push(`Packaging: ${checkout.packagingOption}`);
+                                }
+                                // include preferred delivery time if provided
+                                if (checkout.timeSlot) {
+                                    parts.push(`Preferred time: ${checkout.timeSlot}`);
+                                }
+                                return parts.length > 0 ? parts.join(" | ") : null;
+                            })(),
                         },
 
                         sender: {
@@ -285,6 +298,18 @@ export function OrderReview({
                     {checkout.address.instructions && (
                         <p>
                             Notes: {checkout.address.instructions}
+                        </p>
+                    )}
+
+                    {/* Show selected packaging and preferred time, if any */}
+                    {checkout.packagingOption && checkout.packagingOption !== "standard" && (
+                        <p>
+                            Packaging: {checkout.packagingOption}
+                        </p>
+                    )}
+                    {checkout.timeSlot && (
+                        <p>
+                            Preferred time: {checkout.timeSlot}
                         </p>
                     )}
                 </SummarySection>

@@ -23,3 +23,17 @@ export interface DeliveryAddress {
   locationType: DeliveryLocationType;
   instructions: string;
 }
+
+// Defines the available packaging options for checkout.
+export type PackagingOption =
+  | "standard"
+  | "gift_wrap"
+  | "gift_box"
+  | "custom";
+
+// Defines preferred delivery time slots. An empty string means no preference.
+export type DeliveryTimeSlot =
+  | ""
+  | "morning"
+  | "afternoon"
+  | "evening";

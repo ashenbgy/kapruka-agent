@@ -9,6 +9,8 @@ import type {
   DeliveryAddress,
   RecipientDetails,
   SenderDetails,
+  PackagingOption,
+  DeliveryTimeSlot,
 } from "@/types/checkout";
 
 interface CustomerDetailsFormProps {
@@ -55,6 +57,10 @@ export function CustomerDetailsForm({
   ] = useState(
     checkout.anonymousSender,
   );
+
+  // Packaging and time slot selections come from the checkout store directly.
+  const packagingOption: PackagingOption = checkout.packagingOption as PackagingOption;
+  const timeSlot: DeliveryTimeSlot = checkout.timeSlot as DeliveryTimeSlot;
 
   function submit(
     event: FormEvent<HTMLFormElement>,
@@ -338,6 +344,67 @@ export function CustomerDetailsForm({
             {giftMessage.length}/300
           </p>
         </div>
+
+        {/* Extras: packaging option and preferred delivery time */}
+        <fieldset className="space-y-3">
+          <legend className="font-semibold text-white">
+            Extras
+          </legend>
+
+          <label className="block text-sm text-zinc-300">
+            Packaging option
+            <select
+              value={packagingOption}
+              onChange={(event) =>
+                checkout.setPackagingOption(
+                  event.target
+                    .value as PackagingOption,
+                )
+              }
+              className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
+            >
+              <option value="standard">
+                Standard
+              </option>
+              <option value="gift_wrap">
+                Gift wrap
+              </option>
+              <option value="gift_box">
+                Gift box
+              </option>
+              <option value="custom">
+                Custom packaging
+              </option>
+            </select>
+          </label>
+
+          <label className="block text-sm text-zinc-300">
+            Preferred delivery time
+            <select
+              value={timeSlot}
+              onChange={(event) =>
+                checkout.setTimeSlot(
+                  event.target
+                    .value as DeliveryTimeSlot,
+                )
+              }
+              className="mt-2 w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-white outline-none focus:border-emerald-400"
+            >
+              <option value="">
+                No preference
+              </option>
+              <option value="morning">
+                Morning (8 am–12 pm)
+              </option>
+              <option value="afternoon">
+                Afternoon (12 pm–4 pm)
+              </option>
+              <option value="evening">
+                Evening (4 pm–8 pm)
+              </option>
+            </select>
+          </label>
+        </fieldset>
 
         <button
           type="submit"

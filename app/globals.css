@@ -25,6 +25,25 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* High contrast accessibility mode overrides the default background and text colours.
+   When the `high-contrast` class is present on the <main> element, these CSS variables
+   will propagate through tailwind classes because Tailwind references the CSS variables
+   via our :root definitions. */
+
+/* High contrast accessibility mode overrides the default background and text colours.
+   When the `high-contrast` class is present on the <html> element, these CSS variables
+   override the default values defined on :root. This ensures the colours propagate
+   throughout the entire document, not just inside a single component. */
+:root.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+html.high-contrast {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
 .prompt-scroll {
   scrollbar-width: none;
   -ms-overflow-style: none;

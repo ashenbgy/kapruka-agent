@@ -5,6 +5,7 @@ import type {
   KaprukaProductDetails,
   KaprukaSearchProduct,
 } from "@/types/kapruka";
+import { useWishlistStore } from "@/lib/store/wishlist-store";
 
 const productDetailsCache =
   new Map<string, KaprukaProductDetails>();
@@ -176,6 +177,17 @@ export function ProductCard({
       details,
     );
 
+  // Wishlist state: determine if this product is already saved and expose handlers.
+  const {
+    items: wishlistItems,
+    addItem: addToWishlist,
+    removeItem: removeFromWishlist,
+  } = useWishlistStore();
+
+  const isWishlisted = wishlistItems.some(
+    (p) => p.id === product.id,
+  );
+
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-lg">
       <div className="relative flex h-52 items-center justify-center overflow-hidden bg-zinc-800">
@@ -185,6 +197,26 @@ export function ProductCard({
             {": "}
           </span>
         </span>
+        {/* Wishlist toggle button in the top-right corner */}
+        <button
+          type="button"
+          aria-label={
+            isWishlisted
+              ? "Remove from wishlist"
+              : "Save to wishlist"
+          }
+          onClick={(event) => {
+            event.stopPropagation();
+            if (isWishlisted) {
+              removeFromWishlist(product.id);
+            } else {
+              addToWishlist(product);
+            }
+          }}
+          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-zinc-950/85 text-lg text-emerald-300 shadow-lg backdrop-blur hover:bg-zinc-800"
+        >
+          {isWishlisted ? "⭐" : "☆"}
+        </button>
         {imageUrl ? (
           <img
             src={imageUrl}

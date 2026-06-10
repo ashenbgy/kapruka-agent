@@ -17,6 +17,9 @@ import type {
   ShoppingChatContext,
 } from "@/types/chat";
 
+// Analytics helpers for event logging and A/B testing.
+import { logEvent, getExperimentGroup } from "@/lib/analytics";
+
 import type {
   KaprukaSearchProduct,
 } from "@/types/kapruka";
@@ -82,6 +85,13 @@ const starterCards = [
     prompt:
       "Show me gifts under Rs. 5000",
   },
+  {
+    icon: "🎊",
+    title: "Seasonal gifts",
+    description:
+      "Explore collections for current festivals and holidays.",
+    prompt: "Show me seasonal gifts",
+  },
 ];
 
 const discoveryPaths = [
@@ -117,8 +127,16 @@ const discoveryPaths = [
     prompt:
       "I need something urgent today",
   },
+  {
+    icon: "🎲",
+    title: "Surprise me",
+    description:
+      "Let Gift Mate pick a random live-catalog gift for you.",
+    prompt: "Surprise me with a gift",
+  },
 ];
 
+// Quick prompts for one-click inspiration. Includes common requests, seasonal suggestions and a surprise option for gamified discovery.
 const quickPrompts = [
   "Show me electronics",
   "Show me home essentials",
@@ -128,6 +146,8 @@ const quickPrompts = [
   "Show me flowers for Amma",
   "Can you deliver to Kandy?",
   "Track my order",
+  "Show me seasonal gifts",
+  "Surprise me with a gift",
   "Amma ta flowers tikak ona",
   "අම්මාට මල් බලන්න",
 ];
@@ -299,6 +319,15 @@ export function ChatShell() {
     removeItem,
   } = useCartStore();
 
+  // Voice recognition and text-to-speech states
+  const [listening, setListening] = useState(false);
+  // Whether the assistant will speak its responses aloud
+  const [voiceOutputEnabled, setVoiceOutputEnabled] = useState(true);
+  // Reference to the active speech recognition instance
+  const recognitionRef = useRef<any>(null);
+  // Assign a persistent A/B experiment group on first load
+  const experimentGroupRef = useRef<string>(getExperimentGroup());
+
   function showToast(text: string) {
     setAddedProductMessage(text);
 
@@ -314,9 +343,88 @@ export function ChatShell() {
   ) {
     addItem(product);
 
+    // Record analytics for product additions
+    logEvent("add_to_cart", {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      group: experimentGroupRef.current,
+    });
+
     showToast(
       `Nice pick! ${product.name} is in your cart 🛒`,
     );
+  }
+
+  /**
+   * Start or stop browser speech recognition. When started, the microphone
+   * listens and fills the chat input with the recognised transcript.
+   */
+  function toggleListening() {
+    // If already listening, stop the current recognition session
+    if (listening) {
+      recognitionRef.current?.stop?.();
+      setListening(false);
+      logEvent("voice_input_stopped", {
+        group: experimentGroupRef.current,
+      });
+      return;
+    }
+    if (typeof window === "undefined") {
+      return;
+    }
+    const SpeechRecognition: any =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      // If not supported, let the user know
+      alert(
+        "Your browser does not support speech recognition.",
+      );
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = true;
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (
+        let i = event.resultIndex;
+        i < event.results.length;
+        i++
+      ) {
+        transcript += event.results[i][0].transcript;
+      }
+      setInput(transcript);
+    };
+    recognition.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+      logEvent("voice_input_ended", {
+        group: experimentGroupRef.current,
+      });
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+    setListening(true);
+    logEvent("voice_input_started", {
+      group: experimentGroupRef.current,
+    });
+  }
+
+  /**
+   * Toggle whether assistant responses are spoken aloud using
+   * the browser's speech synthesis API.
+   */
+  function toggleVoiceOutput() {
+    setVoiceOutputEnabled((enabled) => {
+      const newEnabled = !enabled;
+      logEvent("voice_output_toggled", {
+        enabled: newEnabled,
+        group: experimentGroupRef.current,
+      });
+      return newEnabled;
+    });
   }
 
   function appendLocalExchange(
@@ -432,6 +540,34 @@ export function ChatShell() {
     });
   }, [messages, loading]);
 
+  // Speak out assistant messages using the Web Speech API when voice output is enabled.
+  useEffect(() => {
+    if (!voiceOutputEnabled) {
+      return;
+    }
+    if (messages.length === 0) {
+      return;
+    }
+    const last = messages[messages.length - 1];
+    if (last.role !== "assistant") {
+      return;
+    }
+    try {
+      const text = last.text
+        .replace(/\n/g, " ")
+        .trim();
+      if (!text) {
+        return;
+      }
+      const utterance = new SpeechSynthesisUtterance(text);
+      // Use the default voice; browsers will pick a suitable language
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      // Avoid crashing if speech synthesis fails
+      console.error("Speech synthesis error", error);
+    }
+  }, [messages, voiceOutputEnabled]);
+
   async function sendMessage(
     message: string,
     category?: string,
@@ -457,6 +593,13 @@ export function ChatShell() {
 
       return;
     }
+
+    // Record analytics for outbound user message
+    logEvent("send_message", {
+      message: trimmedMessage,
+      category: category ?? null,
+      group: experimentGroupRef.current,
+    });
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -1086,26 +1229,39 @@ export function ChatShell() {
 
         <form
           onSubmit={submit}
-          className="flex gap-3"
+          className="flex items-center gap-3"
         >
+          {/* Voice input toggle button */}
+          <button
+            type="button"
+            onClick={toggleListening}
+            aria-label={listening ? "Stop listening" : "Start listening"}
+            disabled={loading}
+            className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-lg text-zinc-300 hover:border-emerald-500 hover:text-white disabled:opacity-40"
+          >
+            {listening ? "🛑" : "🎤"}
+          </button>
+
+          {/* Voice output toggle button */}
+          <button
+            type="button"
+            onClick={toggleVoiceOutput}
+            aria-label={voiceOutputEnabled ? "Disable voice output" : "Enable voice output"}
+            className="rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-lg text-zinc-300 hover:border-emerald-500 hover:text-white"
+          >
+            {voiceOutputEnabled ? "🔊" : "🔇"}
+          </button>
+
           <input
             value={input}
-            onChange={(event) =>
-              setInput(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setInput(event.target.value)}
             placeholder="Ask for electronics, groceries, gifts, delivery, or tracking..."
             className="flex-1 rounded-2xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-white outline-none focus:border-emerald-400"
           />
 
           <button
             type="submit"
-            disabled={
-              loading ||
-              input.trim().length ===
-                0
-            }
+            disabled={loading || input.trim().length === 0}
             className="rounded-2xl bg-emerald-500 px-5 py-3 font-semibold text-zinc-950 hover:bg-emerald-400 disabled:opacity-40"
           >
             Send
