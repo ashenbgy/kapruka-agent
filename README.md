@@ -17,6 +17,7 @@ Customers can chat naturally in:
 * English
 * Singlish
 * Sinhala
+* Tamil
 
 The assistant guides customers from:
 
@@ -73,6 +74,7 @@ Example prompts:
 Show me flowers for Amma
 Amma ta flowers tikak ona
 අම්මාට මල් බලන්න
+அம்மாவுக்கு மலர்கள் காட்டு
 ```
 
 The assistant adapts its response style to the customer’s language.
@@ -236,6 +238,12 @@ Ganan adu ewa pennanna
 Add the first one
 ```
 
+Tamil example:
+
+```text
+அம்மாவுக்கு மலர்கள் காட்டு
+```
+
 ## How It Works
 
 ```text
@@ -341,7 +349,7 @@ This project directly addresses key Kapruka Agent Challenge bonus areas:
 📅 Delivery-date constraints
 🎁 Gift messaging
 💬 Singlish conversation
-🇱🇰 Sinhala-language support
+🇱🇰 Sinhala & Tamil language support
 🎯 Session-only recipient preferences
 🛡️ Safer recommendations with allergy and dislike filtering
 ```

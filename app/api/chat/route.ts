@@ -543,6 +543,10 @@ function detectLanguage(
     return "sinhala";
   }
 
+  if (/[\u0B80-\u0BFF]/.test(message)) {
+    return "tamil";
+  }
+
   const normalized =
     message.toLowerCase();
 
