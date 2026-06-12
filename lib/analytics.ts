@@ -36,7 +36,7 @@ export function logEvent(
     // Swallow errors silently
   }
   // Always log to the console for visibility during development
-  /* eslint-disable no-console */
+   
   console.log(
     "Analytics event:",
     eventType,
