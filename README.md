@@ -196,10 +196,6 @@ The demo instruments key interactions (message sends, add‑to‑cart actions, v
 
 Gift Mate celebrates Sri Lankan festivals with tailored prompts and guidance. A dedicated starter card highlights **Seasonal gifts**, surfacing curated collections during Avurudu, Vesak, Valentine’s Day or Ramadan. Quick prompts also include **Surprise me with a gift**, inviting the assistant to pick a random live‑catalog item — a playful touch that gamifies discovery.
 
-### 🧠 Persistent Long-Term Memory
-
-Powered by Vercel Blob storage, the concierge maintains conversation context across page reloads and sessions, creating a seamless "Welcome back" experience that evolves with the customer.
-
 ### 🙋 Help & support
 
 If you get stuck, open the **Help & Support** drawer (❓) from the header. It contains answers to common questions (e.g., how to track an order or accepted payment methods) and provides Kapruka’s hotline for human assistance.
