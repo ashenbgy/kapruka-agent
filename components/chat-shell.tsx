@@ -16,6 +16,7 @@ import type {
   RecipientPreferences,
   ShoppingChatContext,
 } from "@/types/chat";
+import { motion } from "framer-motion";
 
 // Analytics helpers for event logging and A/B testing.
 import { logEvent, getExperimentGroup } from "@/lib/analytics";
@@ -1028,7 +1029,10 @@ export function ChatShell() {
             ] ?? 6;
 
           return (
-            <article
+            <motion.article
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
               key={message.id}
               className={
                 message.role ===
@@ -1178,7 +1182,7 @@ export function ChatShell() {
                   <OrderTrackingForm />
                 </div>
               )}
-            </article>
+            </motion.article>
           );
         })}
 

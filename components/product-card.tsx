@@ -6,6 +6,7 @@ import type {
   KaprukaSearchProduct,
 } from "@/types/kapruka";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
+import { motion } from "framer-motion";
 
 const productDetailsCache =
   new Map<string, KaprukaProductDetails>();
@@ -189,7 +190,12 @@ export function ProductCard({
   );
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-lg">
+    <motion.article
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex h-full flex-col overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-lg"
+    >
       <div className="relative flex h-52 items-center justify-center overflow-hidden bg-zinc-800">
         <span className="absolute left-3 top-3 z-10 rounded-full border border-emerald-400/30 bg-zinc-950/85 px-3 py-1 text-xs font-semibold text-emerald-300 shadow-lg backdrop-blur">
           {recommendation.label}
@@ -278,6 +284,6 @@ export function ProductCard({
           </button>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }

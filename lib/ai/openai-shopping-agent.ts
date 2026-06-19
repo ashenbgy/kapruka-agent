@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { observeOpenAI } from "langfuse";
 import { z } from "zod";
 import {
     listCategories,
@@ -10,22 +11,75 @@ import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
 import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
 import type {
-  ChatApiResponse,
-  ShoppingChatContext,
+    ChatApiResponse,
+    ShoppingChatContext,
+    RecipientPreferences,
 } from "@/types/chat";
-import type { KaprukaCategory } from "@/types/kapruka";
+import type { KaprukaCategory, KaprukaSearchProduct } from "@/types/kapruka";
 
-function getOpenAIClient(): OpenAI | null {
-  const apiKey =
-    process.env.OPENAI_API_KEY;
+async function reflectAndFilterProducts(
+    products: KaprukaSearchProduct[],
+    preferences: RecipientPreferences | undefined,
+    openai: OpenAI
+): Promise<KaprukaSearchProduct[]> {
+    const blockedTerms = [
+        ...(preferences?.allergies ?? []),
+        ...(preferences?.dislikes ?? []),
+    ];
 
-  if (!apiKey) {
-    return null;
-  }
+    if (blockedTerms.length === 0 || products.length === 0) {
+        return products;
+    }
 
-  return new OpenAI({
-    apiKey,
-  });
+    try {
+        const response = await openai.chat.completions.create({
+            model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a strict safety and preference filter for a shopping assistant. You must output JSON in the format: { \"unsafeProductIds\": [\"id1\", \"id2\"] }."
+                },
+                {
+                    role: "user",
+                    content: `The recipient has these allergies/dislikes: ${blockedTerms.join(", ")}\n\nCandidate products:\n${products.map(p => `- ID: ${p.id}\n  Name: ${p.name}`).join("\n")}\n\nList the IDs of products that violate these preferences.`
+                }
+            ],
+            response_format: { type: "json_object" }
+        });
+
+        const content = response.choices[0]?.message?.content;
+        if (content) {
+            const parsed = JSON.parse(content);
+            const unsafeIds = new Set(parsed.unsafeProductIds || []);
+
+            return products.filter(p => !unsafeIds.has(p.id));
+        }
+    } catch (e) {
+        console.error("Reflection loop failed:", e);
+    }
+
+    return products;
+}
+
+function getOpenAIClient() {
+    const apiKey =
+        process.env.OPENAI_API_KEY;
+
+    if (!apiKey) {
+        return null;
+    }
+
+    const openai = new OpenAI({
+        apiKey,
+    });
+
+    return observeOpenAI(openai, {
+        clientInitParams: {
+            publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+            secretKey: process.env.LANGFUSE_SECRET_KEY,
+            baseUrl: process.env.LANGFUSE_BASE_URL || "https://cloud.langfuse.com",
+        }
+    });
 }
 
 const featuredCategoryNames = [
@@ -209,8 +263,8 @@ function parseArguments(
 }
 
 export async function runOpenAIShoppingAgent(
-  message: string,
-  context?: ShoppingChatContext,
+    message: string,
+    context?: ShoppingChatContext,
 ): Promise<ChatApiResponse | null> {
     const openai =
         getOpenAIClient();
@@ -219,224 +273,239 @@ export async function runOpenAIShoppingAgent(
         return null;
     }
 
-    const response =
-        await openai.chat.completions.create(
-            {
-                model:
-                    process.env.OPENAI_MODEL ??
-                    "gpt-5.4-mini",
+    try {
+        const response =
+            await openai.chat.completions.create(
+                {
+                    model:
+                        process.env.OPENAI_MODEL ??
+                        "gpt-5.4-mini",
 
-                parallel_tool_calls: false,
+                    parallel_tool_calls: false,
 
-                messages: [
-                    {
-                        role: "system",
-                        content: [
-                            "You are Kapruka Shopping Mate, a warm Sri Lankan shopping concierge.",
-                            "Understand English, Sinhala, Singlish, and Tamil.",
+                    messages: [
+                        {
+                            role: "system",
+                            content: [
+                                "You are Kapruka Gift Mate, an ultra-warm, witty, and exceptionally helpful Sri Lankan shopping concierge.",
+                                "Understand English, Sinhala, Singlish, and Tamil.",
 
-                            "Your personality is warm, cheerful, thoughtful, and lightly witty.",
-                            "Sound like a friendly Sri Lankan shopping concierge, not a robotic search engine. Help with both everyday shopping and gifts.",
-                            "Use small natural touches such as Lovely choice, Nice pick, Shall we add a sweet extra, or Let’s make this special.",
-                            "Keep replies short and useful. Avoid long paragraphs.",
-                            "Match the customer's language style: English, Singlish, Sinhala, or Tamil.",
-                            "After helping, suggest one clear next step such as checking delivery, adding a small extra, or opening the gift box.",
-                            "Use emojis sparingly: usually one or two per response.",
+                                "Your personality is authentic, cheerful, and distinctly Sri Lankan. Talk like a friendly local helping a friend shop.",
+                                "Use natural touches like 'Shaa, maru choice eka!' (Wow, great choice!), 'Niyamai!' (Great!), or 'Let’s make this extra special.'",
+                                "Keep replies punchy and engaging. Avoid long robotic paragraphs.",
+                                "Match the customer's language style: English, Singlish, Sinhala, or Tamil.",
+                                "After helping, gently suggest one clear next step, like checking delivery, adding a card, or opening the gift box.",
+                                "Use emojis thoughtfully to add warmth.",
 
-                            // Deepen local personality: encourage the assistant to feel truly Sri Lankan.
-                            "Sprinkle in colloquial Sri Lankan expressions and light humour when appropriate. Use phrases like ‘aiyoo’, ‘ane’, ‘hari’, ‘macchi’ or Sinhala proverbs in a respectful way so that the conversation feels human and local.",
-                            "When relevant, reference Sri Lankan cultural festivals (e.g. Sinhala and Tamil New Year, Vesak, Avurudu, Poson) or common gifting occasions. Suggest seasonal collections such as New Year hampers or Vesak lanterns when the query is broad or timed near those events.",
+                                "Deepen local personality: Sprinkle in colloquial Sri Lankan expressions naturally.",
+                                "Use words like 'Aiyo', 'Ane', 'Hari', 'Ela', 'Niyamai', or 'Patta' in a respectful, friendly way so it feels human and local.",
+                                "Reference Sri Lankan cultural festivals (e.g., Sinhala and Tamil New Year, Vesak, Christmas) or common gifting occasions when relevant.",
 
-                            "Use tools for product search, category browsing, delivery-city lookup, and order-tracking requests.",
-                            "For catalog searches, choose one concise product keyword.",
-                            "Never create orders or claim that payment was completed.",
-                            "Checkout is handled separately by the cart review screen.",
+                                "CRITICAL INSTRUCTION - INTENT ROUTING & CHITCHAT:",
+                                "If the user is just saying 'hello', 'thank you', 'ok', 'good', or making general conversation (chitchat), DO NOT CALL ANY TOOLS. Just reply warmly in character.",
+                                "Only call tools (search_products, list_categories, find_delivery_city) when the user explicitly asks to find, buy, browse, or check something.",
+                                "Never call a tool just to find something to talk about if the user didn't ask.",
 
-                            "Use the shopping-session context to understand follow-up requests such as cheaper options, only flowers, or delivery questions.",
-                            "Respect recipient preferences. Avoid products that conflict with allergies or dislikes, and stay within the saved budget when possible.",
+                                "Use tools for product search, category browsing, delivery-city lookup, and order-tracking requests.",
+                                "For catalog searches, choose ONE concise product keyword.",
+                                "Never create orders or claim payment was completed. Checkout is handled externally.",
 
-                            context
-                                ? `Shopping-session context: ${JSON.stringify(
-                                    context,
-                                )}`
-                                : "Shopping-session context: none",
+                                "Use the shopping-session context to understand follow-ups like 'cheaper options' or 'only flowers'.",
+                                "Respect recipient preferences. Avoid products that conflict with allergies or dislikes, and stay within the budget.",
 
-                            "If the user asks a general question that does not require a tool, answer briefly and helpfully.",
+                                context
+                                    ? `Shopping-session context: ${JSON.stringify(
+                                        context,
+                                    )}`
+                                    : "Shopping-session context: none",
+
+                                "If the user asks a general question that does not require a tool, answer briefly and helpfully.",
                             ].join("\n"),
-                    },
+                        },
 
-                    ...(context?.recentMessages ?? []).map(
-                        (previousMessage) => ({
-                        role: previousMessage.role,
-                        content: previousMessage.text,
-                        }),
-                    ),
+                        ...(context?.recentMessages ?? []).map(
+                            (previousMessage) => ({
+                                role: previousMessage.role,
+                                content: previousMessage.text,
+                            }),
+                        ),
 
-                    {
-                        role: "user",
-                        content: message,
-                    },
-                ],
+                        {
+                            role: "user",
+                            content: message,
+                        },
+                    ],
 
-                tools,
-            },
-        );
+                    tools,
+                },
+            );
 
-    const assistantMessage =
-        response.choices[0]?.message;
+        const assistantMessage =
+            response.choices[0]?.message;
 
-    const toolCall =
-        assistantMessage?.tool_calls?.[0];
+        const toolCall =
+            assistantMessage?.tool_calls?.[0];
 
-    if (!toolCall) {
-        const text =
-            assistantMessage?.content?.trim();
+        if (!toolCall) {
+            const text =
+                assistantMessage?.content?.trim();
 
-        return text
-            ? {
+            return text
+                ? {
+                    ok: true,
+                    message: text,
+                }
+                : null;
+        }
+
+        if (toolCall.type !== "function") {
+            console.warn(
+                "Unsupported OpenAI tool-call type:",
+                toolCall.type,
+            );
+
+            return null;
+        }
+
+        const toolName =
+            toolCall.function.name;
+
+        const rawArguments =
+            parseArguments(
+                toolCall.function.arguments,
+            );
+
+        if (toolName === "search_products") {
+            const input =
+                searchProductsArgumentsSchema.parse(
+                    rawArguments,
+                );
+
+            const effectiveMaxPrice =
+                input.max_price ??
+                context
+                    ?.recipientPreferences
+                    ?.budgetMax;
+
+            const rawResult =
+                await searchProducts({
+                    q: input.q,
+                    category:
+                        input.category ??
+                        undefined,
+                    max_price:
+                        effectiveMaxPrice,
+                    currency: "LKR",
+                    in_stock_only: true,
+                });
+
+            const result =
+                parseSearchProducts(
+                    rawResult,
+                );
+
+            const initialProducts =
+                prepareRecommendationProducts(
+                    input.q,
+                    result.products,
+                    context
+                        ?.recipientPreferences,
+                );
+
+            const products = await reflectAndFilterProducts(
+                initialProducts,
+                context?.recipientPreferences,
+                openai
+            );
+
+            const budgetText =
+                effectiveMaxPrice !==
+                    undefined
+                    ? ` under LKR ${effectiveMaxPrice.toLocaleString()}`
+                    : "";
+
+            return {
                 ok: true,
-                message: text,
-            }
-            : null;
-    }
 
-    if (toolCall.type !== "function") {
-        console.warn(
-            "Unsupported OpenAI tool-call type:",
-            toolCall.type,
-        );
+                message:
+                    products.length > 0
+                        ? `I found ${products.length} live Kapruka options${budgetText}, including relevant gift suggestions from the live catalog. Add your favourites to the cart. 🎁`
+                        : "I could not find a matching item after applying your preferences. Try another keyword or adjust the budget.",
+
+                products,
+            };
+        }
+
+        if (toolName === "list_categories") {
+            const rawResult =
+                await listCategories(1);
+
+            const result =
+                parseCategories(
+                    rawResult,
+                );
+
+            return {
+                ok: true,
+                message:
+                    "Here are some live Kapruka categories. Pick one and I’ll show matching products. 🛍️",
+                categories:
+                    getFeaturedCategories(
+                        result.categories,
+                    ),
+            };
+        }
+
+        if (
+            toolName ===
+            "find_delivery_city"
+        ) {
+            const input =
+                deliveryCityArgumentsSchema.parse(
+                    rawArguments,
+                );
+
+            const rawResult =
+                await listDeliveryCities(
+                    input.query,
+                    8,
+                );
+
+            const result =
+                parseDeliveryCities(
+                    rawResult,
+                );
+
+            return {
+                ok: true,
+
+                message:
+                    result.cities.length > 0
+                        ? "I found matching Kapruka delivery locations. Select the correct city. 🚚"
+                        : "I could not find that delivery city. Try another spelling.",
+
+                deliveryCities:
+                    result.cities,
+            };
+        }
+
+        if (
+            toolName ===
+            "show_tracking_form"
+        ) {
+            return {
+                ok: true,
+                message:
+                    "Enter the final order number from your Kapruka confirmation email. 📦",
+                action:
+                    "show_tracking",
+            };
+        }
 
         return null;
+    } finally {
+        if (openai && "flushAsync" in openai && typeof openai.flushAsync === "function") {
+            await openai.flushAsync();
+        }
     }
-
-    const toolName =
-        toolCall.function.name;
-
-    const rawArguments =
-        parseArguments(
-            toolCall.function.arguments,
-        );
-
-    if (toolName === "search_products") {
-        const input =
-            searchProductsArgumentsSchema.parse(
-                rawArguments,
-            );
-
-        const effectiveMaxPrice =
-            input.max_price ??
-            context
-                ?.recipientPreferences
-                ?.budgetMax;
-
-        const rawResult =
-            await searchProducts({
-                q: input.q,
-                category:
-                    input.category ??
-                    undefined,
-                max_price:
-                    effectiveMaxPrice,
-                currency: "LKR",
-                in_stock_only: true,
-            });
-
-        const result =
-            parseSearchProducts(
-                rawResult,
-            );
-
-        const products =
-            prepareRecommendationProducts(
-                input.q,
-                result.products,
-                context
-                    ?.recipientPreferences,
-            );
-
-        const budgetText =
-            effectiveMaxPrice !==
-            undefined
-                ? ` under LKR ${effectiveMaxPrice.toLocaleString()}`
-                : "";
-
-        return {
-            ok: true,
-
-            message:
-                products.length > 0
-                    ? `I found ${products.length} live Kapruka options${budgetText}, including relevant gift suggestions from the live catalog. Add your favourites to the cart. 🎁`
-                    : "I could not find a matching item after applying your preferences. Try another keyword or adjust the budget.",
-
-            products,
-        };
-    }
-
-    if (toolName === "list_categories") {
-        const rawResult =
-            await listCategories(1);
-
-        const result =
-            parseCategories(
-                rawResult,
-            );
-
-        return {
-            ok: true,
-            message:
-                "Here are some live Kapruka categories. Pick one and I’ll show matching products. 🛍️",
-            categories:
-                getFeaturedCategories(
-                    result.categories,
-                ),
-        };
-    }
-
-    if (
-        toolName ===
-        "find_delivery_city"
-    ) {
-        const input =
-            deliveryCityArgumentsSchema.parse(
-                rawArguments,
-            );
-
-        const rawResult =
-            await listDeliveryCities(
-                input.query,
-                8,
-            );
-
-        const result =
-            parseDeliveryCities(
-                rawResult,
-            );
-
-        return {
-            ok: true,
-
-            message:
-                result.cities.length > 0
-                    ? "I found matching Kapruka delivery locations. Select the correct city. 🚚"
-                    : "I could not find that delivery city. Try another spelling.",
-
-            deliveryCities:
-                result.cities,
-        };
-    }
-
-    if (
-        toolName ===
-        "show_tracking_form"
-    ) {
-        return {
-            ok: true,
-            message:
-                "Enter the final order number from your Kapruka confirmation email. 📦",
-            action:
-                "show_tracking",
-        };
-    }
-
-    return null;
 }

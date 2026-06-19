@@ -47,6 +47,7 @@ Product discovery
 * Visual starter cards
 * Curated gift-discovery paths
 * Warm, concise assistant personality
+* Smooth Framer Motion UI animations for messages and products
 
 ### 🎨 Visual product discovery
 
@@ -88,6 +89,7 @@ The agent supports:
 * Budget-aware recommendations
 * Generic gift-help flows
 * Multi-turn follow-up questions
+* Smart intent routing to seamlessly handle casual chitchat without unnecessary API tool calls
 * Deterministic handling for common requests
 * AI-powered assistance for open-ended recommendations
 
@@ -188,9 +190,11 @@ During checkout you can customise how your gifts arrive. Choose between standard
 * Secure Kapruka click-to-pay link
 * Order tracking
 
-### 📋 Analytics & A/B Testing
+### 📋 Analytics, Observability & A/B Testing
 
 The demo instruments key interactions (message sends, add‑to‑cart actions, voice toggles) into a lightweight client‑side analytics module. A simple dashboard is available at `/analytics` to view event counts and recent activity. Users are randomly assigned to experiment groups “A” or “B” for future testing.
+
+Furthermore, **Langfuse** is integrated for full LLM observability. This allows us to track OpenAI token costs, trace prompt executions, and monitor how users are interacting with the AI agent in real-time.
 
 ### 🎊 Seasonal themes & Surprise gifts
 
@@ -276,9 +280,11 @@ Checkout creation remains behind an explicit customer-confirmation step.
 * React
 * TypeScript
 * Tailwind CSS
+* Framer Motion
 * Zustand
 * Zod
 * OpenAI tool calling
+* Langfuse (LLM Observability)
 * Kapruka MCP
 * Vercel
 
@@ -316,6 +322,11 @@ Create a `.env.local` file:
 KAPRUKA_MCP_URL=https://mcp.kapruka.com/mcp
 OPENAI_API_KEY=replace_with_your_openai_api_key
 OPENAI_MODEL=replace_with_your_working_model_name
+
+# Langfuse Observability
+LANGFUSE_SECRET_KEY=replace_with_your_langfuse_secret_key
+LANGFUSE_PUBLIC_KEY=replace_with_your_langfuse_public_key
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
 ```
 
 `OPENAI_API_KEY` is optional. Without it, deterministic handling still supports common product searches, category browsing, delivery lookup, cheaper-option requests, and tracking.
