@@ -15,6 +15,7 @@ export interface ChatMessage {
   products?: KaprukaSearchProduct[];
   categories?: KaprukaCategory[];
   deliveryCities?: KaprukaDeliveryCity[];
+  giftMessages?: string[];
   action?: ChatAction;
 }
 
@@ -54,6 +55,7 @@ export interface ChatApiResponse {
   products?: KaprukaSearchProduct[];
   categories?: KaprukaCategory[];
   deliveryCities?: KaprukaDeliveryCity[];
+  giftMessages?: string[];
   action?: ChatAction;
   error?: string;
 }

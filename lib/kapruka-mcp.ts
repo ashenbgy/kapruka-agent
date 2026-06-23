@@ -87,6 +87,11 @@ export async function callKaprukaTool<TArgs extends object>(
         ? String(args.q)
         : undefined,
 
+    category:
+      "category" in args
+        ? String(args.category)
+        : undefined,
+
     itemCount:
       "cart" in args &&
       Array.isArray(args.cart)

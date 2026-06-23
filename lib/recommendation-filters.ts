@@ -90,6 +90,13 @@ export function filterRelevantProducts(
     "fruit basket": (name) =>
       name.includes("fruit") ||
       name.includes("basket"),
+
+    headphones: (name) =>
+      name.includes("headphone") ||
+      name.includes("earphone") ||
+      name.includes("earbud") ||
+      name.includes("airpod") ||
+      name.includes("headset"),
   };
 
   const filter =
@@ -105,9 +112,9 @@ export function filterRelevantProducts(
 }
 
 export function prepareRecommendationProducts(
-  query: string,
   products: KaprukaSearchProduct[],
   preferences?: RecipientPreferences,
+  deterministicQuery?: string,
 ): KaprukaSearchProduct[] {
   const uniqueProducts = Array.from(
     new Map(
@@ -128,11 +135,12 @@ export function prepareRecommendationProducts(
           ),
     );
 
+  const finalProducts = deterministicQuery 
+    ? filterRelevantProducts(deterministicQuery, availableProducts)
+    : availableProducts;
+
   return filterUnsafeProducts(
-    filterRelevantProducts(
-      query,
-      availableProducts,
-    ),
+    finalProducts,
     preferences,
   );
 }

@@ -30,7 +30,7 @@ const contextMessageSchema = z.object({
   text: z
     .string()
     .trim()
-    .max(500),
+    .max(4000),
 });
 
 const contextCartItemSchema = z.object({
@@ -602,6 +602,7 @@ function isGreeting(
 function wantsEverydayShoppingHelp(
   message: string,
 ): boolean {
+  if (message.trim().split(/\s+/).length > 6) return false;
   const normalized =
     message.toLowerCase();
 
@@ -625,6 +626,7 @@ function wantsEverydayShoppingHelp(
 function wantsGenericGiftHelp(
   message: string,
 ): boolean {
+  if (message.trim().split(/\s+/).length > 6) return false;
   const normalized =
     message.toLowerCase();
 
@@ -651,6 +653,7 @@ function wantsGenericGiftHelp(
 function wantsCategories(
   message: string,
 ): boolean {
+  if (message.trim().split(/\s+/).length > 6) return false;
   const normalized =
     message.toLowerCase();
 
@@ -698,6 +701,7 @@ function wantsTracking(
 function detectSearchQuery(
   message: string,
 ): string | null {
+  if (message.trim().split(/\s+/).length > 6) return null;
   const normalized =
     message.toLowerCase();
 
@@ -705,10 +709,11 @@ function detectSearchQuery(
     searchAliases.find(
       (alias) =>
         alias.terms.some(
-          (term) =>
-            normalized.includes(
-              term,
-            ),
+          (term) => {
+            // Use regex to avoid partial substring matches like "phone" in "headphone"
+            const regex = new RegExp(`(?:^|\\W)${term}(?:$|\\W)`);
+            return regex.test(normalized);
+          }
         ),
     );
 
@@ -721,6 +726,7 @@ function detectSearchQuery(
 function wantsCheaperOptions(
   message: string,
 ): boolean {
+  if (message.trim().split(/\s+/).length > 6) return false;
   const normalized =
     message.toLowerCase();
 
@@ -1579,7 +1585,7 @@ export async function POST(
 
       const rawResult =
         await searchProducts({
-          q: categoryQuery,
+          q: 
 
           category,
 
@@ -1595,14 +1601,14 @@ export async function POST(
 
       let products =
         prepareRecommendationProducts(
-          categoryQuery,
-
           parseSearchProducts(
             rawResult,
           ).products,
 
           context
             ?.recipientPreferences,
+            
+          categoryQuery,
         );
 
       if (
@@ -1625,14 +1631,14 @@ export async function POST(
 
         products =
           prepareRecommendationProducts(
-            categoryQuery,
-
             parseSearchProducts(
               fallbackRawResult,
             ).products,
 
             context
               ?.recipientPreferences,
+              
+            categoryQuery,
           );
       }
 
@@ -1683,12 +1689,12 @@ export async function POST(
 
       const products =
         prepareRecommendationProducts(
-          searchQuery,
-
           parsedResult.products,
 
           context
             ?.recipientPreferences,
+            
+          searchQuery,
         );
 
       return NextResponse.json({

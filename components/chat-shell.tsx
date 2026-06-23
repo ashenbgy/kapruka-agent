@@ -716,6 +716,8 @@ export function ChatShell() {
             data.categories,
           deliveryCities:
             data.deliveryCities,
+          giftMessages:
+            data.giftMessages,
           action:
             data.action,
         };
@@ -1173,6 +1175,32 @@ export function ChatShell() {
                         );
                       },
                     )}
+                  </div>
+                )}
+
+              {message.giftMessages &&
+                message.giftMessages.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {message.giftMessages.map((msg, index) => (
+                      <div
+                        key={index}
+                        className="group relative rounded-2xl border border-emerald-900 bg-emerald-950/20 p-4 transition hover:bg-emerald-950/40"
+                      >
+                        <p className="text-sm italic text-emerald-100">
+                          "{msg}"
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(msg);
+                            showToast("Message copied to clipboard! 📋");
+                          }}
+                          className="absolute right-3 top-3 hidden rounded-lg bg-emerald-900/50 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-800 hover:text-white group-hover:block"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
 
