@@ -599,6 +599,30 @@ function isGreeting(
   );
 }
 
+function getInstantFAQAnswer(
+  message: string,
+): string | null {
+  const normalized = message.toLowerCase().trim();
+  
+  if (normalized.includes("payment methods") || normalized.includes("how to pay") || normalized.includes("can i pay with card")) {
+    return "You can pay securely via Credit/Debit Card (Visa, Mastercard, Amex), PayPal, or even Kapruka Global Shop options! 💳";
+  }
+  
+  if (normalized.includes("islandwide delivery") || normalized.includes("do you deliver everywhere")) {
+    return "Yes! Kapruka delivers islandwide across Sri Lanka. Delivery fees depend on the exact city. 🚚";
+  }
+
+  if (normalized.includes("delivery time") || normalized.includes("how long to deliver")) {
+    return "Most gifts can be delivered the very next day, and we even offer Same-Day delivery for certain items in Colombo and suburbs if ordered before the daily cutoff time! ⏳";
+  }
+  
+  if (normalized.includes("who are you") || normalized.includes("what is kapruka gift mate")) {
+    return "I am Kapruka Gift Mate, your personal AI shopping concierge! I can help you find the perfect gifts from Kapruka's live catalog, check delivery availability, and even write gift cards. 🎁";
+  }
+
+  return null;
+}
+
 function wantsEverydayShoppingHelp(
   message: string,
 ): boolean {
@@ -906,32 +930,42 @@ function detectMaxPrice(
 function extractDeliveryCityQuery(
   message: string,
 ): string | null {
-  const patterns = [
-    /(?:deliver|delivery|ship|send)\s+(?:it\s+)?(?:to|for)\s+([a-zA-Z\s-]{2,40})/i,
-
-    /(?:can you|could you)\s+(?:deliver|ship|send)\s+(?:to|for)\s+([a-zA-Z\s-]{2,40})/i,
-
-    /([a-zA-Z\s-]{2,40})\s+(?:deliver|delivery)\s+(?:karanna|puluwanda)/i,
+  const sriLankanDistricts = [
+    "colombo", "gampaha", "kalutara", "kandy", "matale", "nuwara eliya", 
+    "galle", "matara", "hambantota", "jaffna", "kilinochchi", "mannar", 
+    "vavuniya", "mullaitivu", "batticaloa", "ampara", "trincomalee", 
+    "kurunegala", "puttalam", "anuradhapura", "polonnaruwa", "badulla", 
+    "moneragala", "ratnapura", "kegalle"
   ];
 
-  for (
-    const pattern of
-    patterns
-  ) {
-    const match =
-      message.match(
-        pattern,
-      );
+  const normalized = message.toLowerCase().trim();
 
-    if (
-      match?.[1]
-    ) {
-      return match[1]
-        .replace(
-          /[?.!,]+$/g,
-          "",
-        )
-        .trim();
+  // Direct exact match
+  if (sriLankanDistricts.includes(normalized)) {
+    return message.trim();
+  }
+
+  // Also check if the message just says "deliver to X" where X is any word
+  const patterns = [
+    /(?:deliver|delivery|ship|send)\s+(?:it\s+)?(?:to|for|in)\s+([a-zA-Z\s-]{2,40})/i,
+    /(?:can you|could you)\s+(?:deliver|ship|send)\s+(?:to|for|in)\s+([a-zA-Z\s-]{2,40})/i,
+    /([a-zA-Z\s-]{2,40})\s+(?:deliver|delivery)\s+(?:karanna|puluwanda)/i,
+    /([a-zA-Z\s-]{2,40})\s+walata\s+deliver/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = message.match(pattern);
+    if (match?.[1]) {
+      return match[1].replace(/[?.!,]+$/g, "").trim();
+    }
+  }
+
+  // If the message contains a district name along with words like 'deliver'
+  if (normalized.includes("deliver") || normalized.includes("send") || normalized.includes("ship")) {
+    for (const district of sriLankanDistricts) {
+      if (normalized.includes(district)) {
+        return district;
+      }
     }
   }
 
@@ -1331,6 +1365,14 @@ export async function POST(
           greetingMessage(
             language,
           ),
+      });
+    }
+
+    const faqAnswer = getInstantFAQAnswer(message);
+    if (faqAnswer) {
+      return NextResponse.json({
+        ok: true,
+        message: faqAnswer,
       });
     }
 

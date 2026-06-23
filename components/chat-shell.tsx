@@ -726,6 +726,14 @@ export function ChatShell() {
         ...current,
         assistantMessage,
       ]);
+
+      if (data.updatedPreferences) {
+        if (data.updatedPreferences.relationship) setRelationship(data.updatedPreferences.relationship);
+        if (data.updatedPreferences.likes) setLikes(data.updatedPreferences.likes.join(", "));
+        if (data.updatedPreferences.dislikes) setDislikes(data.updatedPreferences.dislikes.join(", "));
+        if (data.updatedPreferences.allergies) setAllergies(data.updatedPreferences.allergies.join(", "));
+        if (data.updatedPreferences.budgetMax) setBudgetMax(data.updatedPreferences.budgetMax.toString());
+      }
     } catch (chatError) {
       console.error(chatError);
 

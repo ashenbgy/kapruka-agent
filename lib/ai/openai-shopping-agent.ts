@@ -14,8 +14,9 @@ import type {
     ChatApiResponse,
     ShoppingChatContext,
     RecipientPreferences,
+    ChatAction,
 } from "@/types/chat";
-import type { KaprukaCategory, KaprukaSearchProduct } from "@/types/kapruka";
+import type { KaprukaCategory, KaprukaSearchProduct, KaprukaDeliveryCity } from "@/types/kapruka";
 
 export async function reflectAndFilterProducts(
     query: string,
@@ -275,6 +276,45 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] =
                 },
             },
         },
+        {
+            type: "function",
+            function: {
+                name: "update_preferences",
+                description:
+                    "Update the recipient's preferences based on the conversation (e.g., likes, dislikes, allergies, budget, or relationship).",
+                strict: true,
+                parameters: {
+                    type: "object",
+                    properties: {
+                        likes: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of things the recipient likes.",
+                        },
+                        dislikes: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of things the recipient dislikes.",
+                        },
+                        allergies: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of the recipient's allergies.",
+                        },
+                        budgetMax: {
+                            type: ["number", "null"],
+                            description: "Maximum budget limit in LKR.",
+                        },
+                        relationship: {
+                            type: ["string", "null"],
+                            description: "The recipient's relationship to the user.",
+                        },
+                    },
+                    required: ["likes", "dislikes", "allergies", "budgetMax", "relationship"],
+                    additionalProperties: false,
+                },
+            },
+        },
     ];
 
 function parseArguments(
@@ -313,6 +353,8 @@ export async function runOpenAIShoppingAgent(
                 "Match the customer's language style: English, Singlish, Sinhala, or Tamil.",
                 "After helping, gently suggest one clear next step, like checking delivery, adding a card, or opening the gift box.",
                 "Use emojis thoughtfully to add warmth.",
+                "CRITICAL UI INSTRUCTION: DO NOT use markdown formatting like **bold** or *italics*. Your text is rendered as plain text.",
+                "CRITICAL UI INSTRUCTION: DO NOT list out product names or prices in your text response! The products will automatically be displayed in rich visual UI cards below your message. Keep your text response conversational and brief.",
 
                 "Deepen local personality: Sprinkle in colloquial Sri Lankan expressions naturally.",
                 "Use words like 'Aiyo', 'Ane', 'Hari', 'Ela', 'Niyamai', or 'Patta' in a respectful, friendly way so it feels human and local.",
@@ -334,6 +376,8 @@ export async function runOpenAIShoppingAgent(
 
                 "When calling the suggest_gift_message tool, you must match the tone and language (Sinhala/English/Tamil) of the user's request. Output exactly 3 distinct messages.",
 
+                "CRITICAL - MEMORY DISTILLATION: If the user mentions any preferences (e.g., 'my wife', 'she hates chocolate', 'no peanuts', 'my budget is 5000'), you MUST immediately call the update_preferences tool to save these facts. You can call it concurrently alongside other tools like search_products.",
+
                 context
                     ? `Shopping-session context: ${JSON.stringify(context)}`
                     : "Shopping-session context: none",
@@ -353,11 +397,18 @@ export async function runOpenAIShoppingAgent(
         },
     ];
 
+    let accumulatedProducts: KaprukaSearchProduct[] = [];
+    let accumulatedCategories: KaprukaCategory[] = [];
+    let accumulatedDeliveryCities: KaprukaDeliveryCity[] = [];
+    let accumulatedGiftMessages: string[] = [];
+    let accumulatedPreferences: Partial<RecipientPreferences> | undefined;
+    let finalAction: ChatAction | undefined;
+
     try {
-        for (let attempt = 0; attempt < 2; attempt++) {
+        for (let attempt = 0; attempt < 3; attempt++) {
             const response = await openai.chat.completions.create({
                 model: process.env.OPENAI_MODEL ?? "gpt-5.4-mini",
-                parallel_tool_calls: false,
+                parallel_tool_calls: true,
                 messages: conversationHistory,
                 tools,
             });
@@ -365,122 +416,161 @@ export async function runOpenAIShoppingAgent(
             const assistantMessage = response.choices[0]?.message;
             if (!assistantMessage) return null;
 
-            const toolCall = assistantMessage?.tool_calls?.[0];
-
-            if (!toolCall) {
+            if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
                 const text = assistantMessage?.content?.trim();
-                return text ? { ok: true, message: text } : null;
+                return text ? {
+                    ok: true,
+                    message: text,
+                    products: accumulatedProducts.length > 0 ? accumulatedProducts : undefined,
+                    categories: accumulatedCategories.length > 0 ? accumulatedCategories : undefined,
+                    deliveryCities: accumulatedDeliveryCities.length > 0 ? accumulatedDeliveryCities : undefined,
+                    giftMessages: accumulatedGiftMessages.length > 0 ? accumulatedGiftMessages : undefined,
+                    action: finalAction,
+                    updatedPreferences: accumulatedPreferences
+                } : null;
             }
 
-            if (toolCall.type !== "function") {
-                console.warn("Unsupported OpenAI tool-call type:", toolCall.type);
-                return null;
-            }
+            conversationHistory.push(assistantMessage);
 
-            const toolName = toolCall.function.name;
-            const rawArguments = parseArguments(toolCall.function.arguments);
+            await Promise.all(assistantMessage.tool_calls.map(async (toolCall) => {
+                if (toolCall.type !== "function") return;
 
-            if (toolName === "search_products") {
-                const input = searchProductsArgumentsSchema.parse(rawArguments);
+                const toolName = toolCall.function.name;
+                const rawArguments = parseArguments(toolCall.function.arguments);
 
-                const effectiveMaxPrice =
-                    input.max_price ?? context?.recipientPreferences?.budgetMax;
+                try {
+                    if (toolName === "search_products") {
+                        const input = searchProductsArgumentsSchema.parse(rawArguments);
+                        const effectiveMaxPrice = input.max_price ?? context?.recipientPreferences?.budgetMax;
 
-                const rawResult = await searchProducts({
-                    q: input.q,
-                    category: input.category ?? undefined,
-                    max_price: effectiveMaxPrice,
-                    currency: "LKR",
-                    in_stock_only: true,
-                });
+                        let products: KaprukaSearchProduct[] = [];
+                        let currentCategory = input.category ?? undefined;
+                        let searchTerms = input.q.trim().split(/\s+/);
+                        let searchAttempt = 0;
 
-                console.log("DEBUG: Raw result from Kapruka:", JSON.stringify(rawResult).substring(0, 500));
+                        while (searchTerms.length > 0 && products.length === 0 && searchAttempt < 4) {
+                            const currentQuery = searchTerms.join(" ");
+                            
+                            // Heuristic: If first attempt fails, the category is usually wrong/too strict. Drop it.
+                            if (searchAttempt > 0) {
+                                currentCategory = undefined;
+                            }
 
-                const result = parseSearchProducts(rawResult);
-                console.log("DEBUG: Parsed products count:", result.products.length);
+                            const rawResult = await searchProducts({
+                                q: currentQuery,
+                                category: currentCategory,
+                                max_price: effectiveMaxPrice,
+                                currency: "LKR",
+                                in_stock_only: true,
+                            });
 
-                const initialProducts = prepareRecommendationProducts(
-                    result.products,
-                    context?.recipientPreferences,
-                );
+                            const result = parseSearchProducts(rawResult);
+                            const initialProducts = prepareRecommendationProducts(result.products, context?.recipientPreferences);
+                            products = await reflectAndFilterProducts(currentQuery, initialProducts, context?.recipientPreferences, openai);
 
-                const products = await reflectAndFilterProducts(
-                    input.q,
-                    initialProducts,
-                    context?.recipientPreferences,
-                    openai
-                );
+                            if (products.length === 0) {
+                                // If dropping the category didn't help (attempt 1), start stripping adjectives from the front
+                                if (searchAttempt > 0) {
+                                    searchTerms.shift();
+                                }
+                                searchAttempt++;
+                            }
+                        }
 
-                if (products.length === 0 && attempt === 0) {
-                    conversationHistory.push(assistantMessage);
+                        if (products.length === 0) {
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ error: `0 products found even after broadening search. The user asked for '${input.q}'. Tell them you couldn't find it.` })
+                            });
+                        } else {
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ success: true, count: products.length, products: products.map(p => ({ name: p.name, price: p.price })) })
+                            });
+                            accumulatedProducts.push(...products);
+                        }
+                    } else if (toolName === "list_categories") {
+                        const rawResult = await listCategories(1);
+                        const result = parseCategories(rawResult);
+                        const categories = getFeaturedCategories(result.categories);
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true, categories: categories.map(c => c.name) })
+                        });
+                        accumulatedCategories.push(...categories);
+                    } else if (toolName === "find_delivery_city") {
+                        const input = deliveryCityArgumentsSchema.parse(rawArguments);
+                        const rawResult = await listDeliveryCities(input.query, 8);
+                        const result = parseDeliveryCities(rawResult);
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true, cities: result.cities.map(c => c.name) })
+                        });
+                        accumulatedDeliveryCities.push(...result.cities);
+                    } else if (toolName === "show_tracking_form") {
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true })
+                        });
+                        finalAction = "show_tracking";
+                    } else if (toolName === "suggest_gift_message") {
+                        const rawMessages = JSON.parse(toolCall.function.arguments);
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true, count: rawMessages.messages?.length || 0 })
+                        });
+                        if (rawMessages.messages) {
+                            accumulatedGiftMessages.push(...rawMessages.messages);
+                        }
+                    } else if (toolName === "update_preferences") {
+                        const rawPrefs = JSON.parse(toolCall.function.arguments);
+                        accumulatedPreferences = {
+                            likes: rawPrefs.likes,
+                            dislikes: rawPrefs.dislikes,
+                            allergies: rawPrefs.allergies,
+                            budgetMax: rawPrefs.budgetMax ?? undefined,
+                            relationship: rawPrefs.relationship ?? undefined,
+                        };
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true, updated: true })
+                        });
+                    } else {
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ error: "Unknown tool" })
+                        });
+                    }
+                } catch (err: any) {
                     conversationHistory.push({
                         role: "tool",
                         tool_call_id: toolCall.id,
                         name: toolName,
-                        content: JSON.stringify({ error: "0 products found. Try a different, broader keyword (e.g. 'cake'), and CRITICALLY: set category to null." })
+                        content: JSON.stringify({ error: err.message || "Tool execution failed" })
                     });
-                    continue;
                 }
-
-                const budgetText = effectiveMaxPrice !== undefined
-                    ? ` under LKR ${effectiveMaxPrice.toLocaleString()}`
-                    : "";
-
-                return {
-                    ok: true,
-                    message: products.length > 0
-                        ? `I found ${products.length} live Kapruka options${budgetText}, including relevant gift suggestions from the live catalog. Add your favourites to the cart. 🎁`
-                        : "I could not find a matching item after applying your preferences. Try another keyword or adjust the budget.",
-                    products,
-                };
-            }
-
-            if (toolName === "list_categories") {
-                const rawResult = await listCategories(1);
-                const result = parseCategories(rawResult);
-
-                return {
-                    ok: true,
-                    message: "Here are some live Kapruka categories. Pick one and I’ll show matching products. 🛍️",
-                    categories: getFeaturedCategories(result.categories),
-                };
-            }
-
-            if (toolName === "find_delivery_city") {
-                const input = deliveryCityArgumentsSchema.parse(rawArguments);
-                const rawResult = await listDeliveryCities(input.query, 8);
-                const result = parseDeliveryCities(rawResult);
-
-                return {
-                    ok: true,
-                    message: result.cities.length > 0
-                        ? "I found matching Kapruka delivery locations. Select the correct city. 🚚"
-                        : "I could not find that delivery city. Try another spelling.",
-                    deliveryCities: result.cities,
-                };
-            }
-
-            if (toolName === "show_tracking_form") {
-                return {
-                    ok: true,
-                    message: "Enter the final order number from your Kapruka confirmation email. 📦",
-                    action: "show_tracking",
-                };
-            }
-
-            if (toolName === "suggest_gift_message") {
-                const rawMessages = JSON.parse(toolCall.function.arguments);
-
-                return {
-                    ok: true,
-                    message: "Here are a few heartfelt ideas for your gift message. Feel free to copy and use your favourite! ✍️",
-                    giftMessages: rawMessages.messages,
-                };
-            }
-
-            return null;
+            }));
         }
 
+        return null;
+    } catch (error) {
+        console.error("OpenAI Shopping Agent Error:", error);
         return null;
     } finally {
         if (openai && "flushAsync" in openai && typeof openai.flushAsync === "function") {

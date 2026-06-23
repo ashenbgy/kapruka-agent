@@ -57,5 +57,6 @@ export interface ChatApiResponse {
   deliveryCities?: KaprukaDeliveryCity[];
   giftMessages?: string[];
   action?: ChatAction;
+  updatedPreferences?: Partial<RecipientPreferences>;
   error?: string;
 }
