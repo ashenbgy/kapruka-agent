@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { OrderTrackingForm } from "@/components/order-tracking-form";
+import { TrackedOrderCard } from "@/components/tracked-order-card";
 import { ProductCard } from "@/components/product-card";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useCheckoutStore } from "@/lib/store/checkout-store";
@@ -720,6 +720,8 @@ export function ChatShell() {
             data.giftMessages,
           action:
             data.action,
+          trackedOrder:
+            data.trackedOrder,
         };
 
       setMessages((current) => [
@@ -1040,6 +1042,7 @@ export function ChatShell() {
 
           return (
             <motion.article
+              layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -1122,9 +1125,11 @@ export function ChatShell() {
                           );
 
                         return (
-                          <button
+                          <motion.button
                             key={category.name}
                             type="button"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() =>
                               void sendMessage(
                                 `Show me ${category.name}${budgetSuffix}`,
@@ -1136,7 +1141,7 @@ export function ChatShell() {
                             {formatCategoryLabel(
                               category.name,
                             )}
-                          </button>
+                          </motion.button>
                         );
                       },
                     )}
@@ -1212,11 +1217,8 @@ export function ChatShell() {
                   </div>
                 )}
 
-              {message.action ===
-                "show_tracking" && (
-                <div className="mt-4">
-                  <OrderTrackingForm />
-                </div>
+              {message.trackedOrder && (
+                <TrackedOrderCard order={message.trackedOrder} />
               )}
             </motion.article>
           );
@@ -1247,9 +1249,11 @@ export function ChatShell() {
           <div className="prompt-scroll flex gap-2 overflow-x-auto pb-1 pr-10">
             {quickPrompts.map(
               (prompt) => (
-                <button
+                <motion.button
                   key={prompt}
                   type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() =>
                     void sendMessage(
                       prompt,
@@ -1259,7 +1263,7 @@ export function ChatShell() {
                   className="whitespace-nowrap rounded-full border border-zinc-700 bg-zinc-900 px-3 py-2 text-xs text-zinc-300 hover:border-emerald-500 hover:text-white disabled:opacity-50"
                 >
                   {prompt}
-                </button>
+                </motion.button>
               ),
             )}
           </div>

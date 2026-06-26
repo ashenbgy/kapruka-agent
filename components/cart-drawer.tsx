@@ -5,6 +5,7 @@ import { CustomerDetailsForm } from "@/components/customer-details-form";
 import { DeliveryForm } from "@/components/delivery-form";
 import { OrderReview } from "@/components/order-review";
 import { useCartStore } from "@/lib/store/cart-store";
+import { AnimatePresence, motion } from "framer-motion";
 
 type CheckoutStep =
   | "cart"
@@ -54,19 +55,31 @@ export function CartDrawer() {
       0,
     );
 
-  if (!isOpen) {
-    return null;
-  }
-
   function closeDrawer() {
     setStep("cart");
     closeCart();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60">
-      <aside className="h-full w-full max-w-md overflow-y-auto bg-zinc-950 p-6 shadow-2xl">
-        <div className="flex justify-end">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-black/60"
+            onClick={closeDrawer}
+          />
+          <motion.aside
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="relative h-full w-full max-w-md overflow-y-auto bg-zinc-950 p-6 shadow-2xl"
+          >
+            <div className="flex justify-end">
           <button
             type="button"
             onClick={closeDrawer}
@@ -277,7 +290,9 @@ export function CartDrawer() {
             )}
           </>
         )}
-      </aside>
-    </div>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

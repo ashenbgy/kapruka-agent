@@ -304,7 +304,7 @@ const searchAliases = [
     query: "books",
   },
 
-    {
+  {
     terms: [
       "electronics",
       "electronic",
@@ -510,7 +510,7 @@ const categorySearchAliases: Record<
   bestsellers:
     "gift",
 
-    electronics:
+  electronics:
     "electronics",
 
   household:
@@ -603,11 +603,11 @@ function getInstantFAQAnswer(
   message: string,
 ): string | null {
   const normalized = message.toLowerCase().trim();
-  
+
   if (normalized.includes("payment methods") || normalized.includes("how to pay") || normalized.includes("can i pay with card")) {
     return "You can pay securely via Credit/Debit Card (Visa, Mastercard, Amex), PayPal, or even Kapruka Global Shop options! 💳";
   }
-  
+
   if (normalized.includes("islandwide delivery") || normalized.includes("do you deliver everywhere")) {
     return "Yes! Kapruka delivers islandwide across Sri Lanka. Delivery fees depend on the exact city. 🚚";
   }
@@ -615,7 +615,7 @@ function getInstantFAQAnswer(
   if (normalized.includes("delivery time") || normalized.includes("how long to deliver")) {
     return "Most gifts can be delivered the very next day, and we even offer Same-Day delivery for certain items in Colombo and suburbs if ordered before the daily cutoff time! ⏳";
   }
-  
+
   if (normalized.includes("who are you") || normalized.includes("what is kapruka gift mate")) {
     return "I am Kapruka Gift Mate, your personal AI shopping concierge! I can help you find the perfect gifts from Kapruka's live catalog, check delivery availability, and even write gift cards. 🎁";
   }
@@ -774,8 +774,8 @@ function wantsCheaperOptions(
 function inferPreviousSearchQuery(
   context:
     | z.infer<
-        typeof schema
-      >["context"]
+      typeof schema
+    >["context"]
     | undefined,
 ): string | null {
   const previousProducts =
@@ -864,8 +864,8 @@ function inferPreviousSearchQuery(
 function inferCheaperMaxPrice(
   context:
     | z.infer<
-        typeof schema
-      >["context"]
+      typeof schema
+    >["context"]
     | undefined,
 ): number | undefined {
   const prices =
@@ -899,7 +899,7 @@ function inferCheaperMaxPrice(
 
     Math.floor(
       cheapestVisiblePrice -
-        1,
+      1,
     ),
   );
 }
@@ -931,10 +931,10 @@ function extractDeliveryCityQuery(
   message: string,
 ): string | null {
   const sriLankanDistricts = [
-    "colombo", "gampaha", "kalutara", "kandy", "matale", "nuwara eliya", 
-    "galle", "matara", "hambantota", "jaffna", "kilinochchi", "mannar", 
-    "vavuniya", "mullaitivu", "batticaloa", "ampara", "trincomalee", 
-    "kurunegala", "puttalam", "anuradhapura", "polonnaruwa", "badulla", 
+    "colombo", "gampaha", "kalutara", "kandy", "matale", "nuwara eliya",
+    "galle", "matara", "hambantota", "jaffna", "kilinochchi", "mannar",
+    "vavuniya", "mullaitivu", "batticaloa", "ampara", "trincomalee",
+    "kurunegala", "puttalam", "anuradhapura", "polonnaruwa", "badulla",
     "moneragala", "ratnapura", "kegalle"
   ];
 
@@ -983,27 +983,27 @@ function getFeaturedCategories(
           name,
           index,
         ) => [
-          name.toLowerCase(),
-          index,
-        ],
+            name.toLowerCase(),
+            index,
+          ],
       ),
     );
 
   const uniqueCategories =
-  Array.from(
-    new Map(
-      categories.map(
-        (category) => [
-          category.name
-            .toLowerCase()
-            .trim(),
-          category,
-        ],
-      ),
-    ).values(),
-  );
+    Array.from(
+      new Map(
+        categories.map(
+          (category) => [
+            category.name
+              .toLowerCase()
+              .trim(),
+            category,
+          ],
+        ),
+      ).values(),
+    );
 
-return uniqueCategories
+  return uniqueCategories
     .filter((category) => {
       const normalized =
         category.name
@@ -1077,7 +1077,7 @@ function getCategorySearchQuery(
 ): string {
   return (
     categorySearchAliases[
-      category.toLowerCase()
+    category.toLowerCase()
     ] ?? category
   );
 }
@@ -1219,14 +1219,15 @@ function greetingMessage(
     "singlish"
   ) {
     return [
-      "Ayubowan! 👋 Mama oyage Kapruka Gift Mate.",
+      "Ayubowan! 👋 Mama oyage Kapruka Gift Mate. Kohomada?",
       "",
-      "Gift eka, occasion eka, nathnam budget eka kiyanna.",
+      "Oyata one mona wage gift ekakda kiyanna. Budget eka kiyannath puluwan.",
       "",
-      "Try karanna:",
-      "• Rs. 8,000 athule birthday cake ekak",
-      "• Amma ta flowers tikak",
-      "• Categories monawada?",
+      "Mewa try karala balanna:",
+      "• Rs. 8,000 athule lassanama birthday cake ekak",
+      "• Amma ta lassana flowers tikak",
+      "• Track my order VPAY827982BA",
+      "• Balanna puluwan categories monawada?",
     ].join("\n");
   }
 
@@ -1244,14 +1245,15 @@ function greetingMessage(
   }
 
   return [
-    "Ayubowan! 👋 I’m your Kapruka Gift Mate.",
+    "Ayubowan! 👋 I’m your Kapruka Gift Mate. So glad you're here!",
     "",
-    "Tell me what you need, the occasion, or your budget.",
+    "Tell me what you're looking for, who it's for, or your budget, and let's find the perfect gift together.",
     "",
-    "Try:",
-    "• Find a birthday cake under Rs. 8,000",
-    "• Show me flowers for Amma",
-    "• What categories do you have?",
+    "You can try saying:",
+    "• Find a nice birthday cake under Rs. 8,000",
+    "• Show me some beautiful flowers for Amma",
+    "• Track my order VPAY827982BA",
+    "• What kind of gifts do you have?",
   ].join("\n");
 }
 
@@ -1262,7 +1264,7 @@ function productResultMessage(
 ): string {
   const priceNote =
     maxPrice !==
-    undefined
+      undefined
       ? ` under LKR ${maxPrice.toLocaleString()}`
       : "";
 
@@ -1282,9 +1284,9 @@ function productResultMessage(
     "singlish"
   ) {
     return [
-      `Lassana Kapruka options ${productCount}k hambuna${priceNote}. 🎁`,
-      "Kamathi eka gift box ekata add karanna.",
-      "Budget eka tikak adu karanna one nam “show cheaper ones” kiyanna.",
+      `Shaa! Maru Kapruka options ${productCount}k hambuna${priceNote}. 🎁`,
+      "Oyata kamathi eka cart ekata add karanna.",
+      "Thawa aduwata balanna one nam “aduwata balanna” kiyanna.",
     ].join("\n");
   }
 
@@ -1297,9 +1299,9 @@ function productResultMessage(
   }
 
   return [
-    `I found ${productCount} lovely Kapruka options${priceNote}. 🎁`,
-    "Add your favourite to the gift box.",
-    "Need a smaller price tag? Just say “show cheaper ones”.",
+    `Wow, I found ${productCount} wonderful Kapruka options${priceNote} for you. 🎁`,
+    "Add your favourite to the cart!",
+    "Need something more budget-friendly? Just say “show cheaper options”.",
   ].join("\n");
 }
 
@@ -1393,25 +1395,7 @@ export async function POST(
       });
     }
 
-    if (
-      trackingRequest
-    ) {
-      return NextResponse.json({
-        ok: true,
 
-        message:
-          language ===
-          "sinhala"
-            ? "ඔබගේ Kapruka order number එක ඇතුළත් කරන්න. 📦"
-            : language ===
-                "singlish"
-              ? "Kapruka confirmation email eke order number eka danna. 📦"
-              : "Enter the final order number from your Kapruka confirmation email. 📦",
-
-        action:
-          "show_tracking",
-      });
-    }
 
     if (
       cityQuery
@@ -1434,7 +1418,7 @@ export async function POST(
           parsedResult
             .cities
             .length >
-          0
+            0
             ? language ===
               "singlish"
               ? "Delivery city match eka hambuna. City eka select karanna. 🚚"
@@ -1464,10 +1448,10 @@ export async function POST(
 
         message:
           language ===
-          "sinhala"
+            "sinhala"
             ? "ඔබටම ගන්න දෙයක් හොයමු 🛍️ කැමති වර්ගයක් තෝරන්න."
             : language ===
-                "singlish"
+              "singlish"
               ? "Hari, oyata useful deyak hoyamu 🛍️ Category ekak select karanna."
               : "Nice — let’s find something useful for you 🛍️ Pick a category and I’ll show live Kapruka options.",
 
@@ -1498,7 +1482,7 @@ export async function POST(
 
       const budgetText =
         maxPrice !==
-        undefined
+          undefined
           ? ` Your budget is LKR ${maxPrice.toLocaleString()}.`
           : "";
 
@@ -1507,10 +1491,10 @@ export async function POST(
 
         message:
           language ===
-          "sinhala"
+            "sinhala"
             ? `හොඳ තෑග්ගක් තෝරමු 🎁${budgetText} මුලින් වර්ගයක් තෝරන්න.`
             : language ===
-                "singlish"
+              "singlish"
               ? `Lassana gift ekak select karamu 🎁${budgetText} Category ekak choose karanna. Mama best options tika pennannam.`
               : `Let’s find something lovely 🎁${budgetText} Pick a category and I’ll bring you the best live options.`,
 
@@ -1539,10 +1523,10 @@ export async function POST(
 
         message:
           language ===
-          "sinhala"
+            "sinhala"
             ? "හරි, තෑග්ග ටිකක් narrow down කරමු 🛍️ කැමති වර්ගයක් තෝරන්න."
             : language ===
-                "singlish"
+              "singlish"
               ? "Hari, gift eka narrow down karamu 🛍️ Category ekak select karanna. Mama lassana options pennannam."
               : "Let’s narrow it down together 🛍️ Pick a category and I’ll bring you the nicest live Kapruka options.",
 
@@ -1577,7 +1561,7 @@ export async function POST(
           );
         }
       } catch (
-        error
+      error
       ) {
         console.error(
           "OpenAI agent failed. Using deterministic fallback:",
@@ -1605,11 +1589,11 @@ export async function POST(
       explicitMaxPrice ??
       (cheaperFollowUp
         ? inferCheaperMaxPrice(
-            context,
-          )
+          context,
+        )
         : context
-            ?.recipientPreferences
-            ?.budgetMax);
+          ?.recipientPreferences
+          ?.budgetMax);
 
     const searchQuery =
       explicitSearchQuery ??
@@ -1627,9 +1611,9 @@ export async function POST(
 
       const rawResult =
         await searchProducts({
-          q: 
+          q:
 
-          category,
+            category,
 
           currency:
             "LKR",
@@ -1649,7 +1633,7 @@ export async function POST(
 
           context
             ?.recipientPreferences,
-            
+
           categoryQuery,
         );
 
@@ -1679,7 +1663,7 @@ export async function POST(
 
             context
               ?.recipientPreferences,
-              
+
             categoryQuery,
           );
       }
@@ -1689,18 +1673,18 @@ export async function POST(
 
         message:
           products.length >
-          0
+            0
             ? addSituationIntro(
-                message,
+              message,
 
-                productResultMessage(
-                  language,
+              productResultMessage(
+                language,
 
-                  products.length,
+                products.length,
 
-                  maxPrice,
-                ),
-              )
+                maxPrice,
+              ),
+            )
             : "I could not find available items in that category right now. Try another category.",
 
         products,
@@ -1735,7 +1719,7 @@ export async function POST(
 
           context
             ?.recipientPreferences,
-            
+
           searchQuery,
         );
 
@@ -1744,18 +1728,18 @@ export async function POST(
 
         message:
           products.length >
-          0
+            0
             ? addSituationIntro(
-                message,
+              message,
 
-                productResultMessage(
-                  language,
+              productResultMessage(
+                language,
 
-                  products.length,
+                products.length,
 
-                  maxPrice,
-                ),
-              )
+                maxPrice,
+              ),
+            )
             : "I could not find a matching item. Try another keyword or increase your budget.",
 
         products,
@@ -1767,15 +1751,15 @@ export async function POST(
 
       message:
         language ===
-        "sinhala"
+          "sinhala"
           ? "මම උදව් කරන්නම් 😊 ඔබ සොයන්නේ මොනවාද, budget එක කීයද, නැත්නම් තෑග්ග කාටද කියන්න. Electronics, home items, කේක්, මල් සහ තවත් දේවල් බලමු."
           : language ===
-              "singlish"
+            "singlish"
             ? "Mama help karannam 😊 Oyata monawada one, budget eka keeyada, nathnam gift eka katada kiyanna. Electronics, home items, cakes, flowers saha thawath dewal balamu."
             : "I’d love to help 😊 Tell me what you are shopping for, your budget, or who the gift is for. I can help with everyday products, electronics, home items, cakes, flowers, and more.",
     });
   } catch (
-    error
+  error
   ) {
     console.error(
       "Chat request failed:",
@@ -1806,7 +1790,7 @@ export async function POST(
 
         error:
           error instanceof
-          Error
+            Error
             ? error.message
             : "Unable to process your message.",
       },

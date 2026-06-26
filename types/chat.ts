@@ -3,6 +3,7 @@ import type {
   KaprukaDeliveryCity,
   KaprukaSearchProduct,
 } from "@/types/kapruka";
+import type { TrackOrderResult } from "@/types/tracking";
 
 export type ChatAction =
   | "show_tracking"
@@ -17,6 +18,7 @@ export interface ChatMessage {
   deliveryCities?: KaprukaDeliveryCity[];
   giftMessages?: string[];
   action?: ChatAction;
+  trackedOrder?: TrackOrderResult;
 }
 
 export interface ChatContextMessage {
@@ -57,6 +59,7 @@ export interface ChatApiResponse {
   deliveryCities?: KaprukaDeliveryCity[];
   giftMessages?: string[];
   action?: ChatAction;
+  trackedOrder?: TrackOrderResult;
   updatedPreferences?: Partial<RecipientPreferences>;
   error?: string;
 }

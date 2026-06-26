@@ -266,22 +266,26 @@ export function ProductCard({
         </p>
 
         <div className="mt-auto flex gap-2 pt-5">
-          <a
+          <motion.a
             href={details?.productUrl ?? product.productUrl}
             target="_blank"
             rel="noreferrer"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className="flex-1 rounded-xl border border-zinc-700 px-3 py-2 text-center text-sm text-zinc-200 hover:border-zinc-500"
           >
             View
-          </a>
+          </motion.a>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => onAddToCart(product)}
             className="flex-1 rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 hover:bg-emerald-400"
           >
             Add
-          </button>
+          </motion.button>
         </div>
       </div>
     </motion.article>

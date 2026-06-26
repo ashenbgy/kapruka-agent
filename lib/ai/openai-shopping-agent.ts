@@ -5,10 +5,12 @@ import {
     listCategories,
     listDeliveryCities,
     searchProducts,
+    trackOrder,
 } from "@/lib/kapruka-tools";
 import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
+import { parseTrackOrderResult } from "@/lib/parsers/track-order";
 import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
 import type {
     ChatApiResponse,
@@ -17,6 +19,7 @@ import type {
     ChatAction,
 } from "@/types/chat";
 import type { KaprukaCategory, KaprukaSearchProduct, KaprukaDeliveryCity } from "@/types/kapruka";
+import type { TrackOrderResult } from "@/types/tracking";
 
 export async function reflectAndFilterProducts(
     query: string,
@@ -238,14 +241,19 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] =
         {
             type: "function",
             function: {
-                name: "show_tracking_form",
+                name: "track_order",
                 description:
-                    "Show the order-tracking form when the user wants to track a Kapruka order.",
+                    "Track the status of a Kapruka order using its order number.",
                 strict: true,
                 parameters: {
                     type: "object",
-                    properties: {},
-                    required: [],
+                    properties: {
+                        order_number: {
+                            type: "string",
+                            description: "The Kapruka order number to track (e.g., VPAY827982BA).",
+                        }
+                    },
+                    required: ["order_number"],
                     additionalProperties: false,
                 },
             },
@@ -348,7 +356,6 @@ export async function runOpenAIShoppingAgent(
                 "Understand English, Sinhala, Singlish, and Tamil.",
 
                 "Your personality is authentic, cheerful, and distinctly Sri Lankan. Talk like a friendly local helping a friend shop.",
-                "Use natural touches like 'Shaa, maru choice eka!' (Wow, great choice!), 'Niyamai!' (Great!), or 'Let’s make this extra special.'",
                 "Keep replies punchy and engaging. Avoid long robotic paragraphs.",
                 "Match the customer's language style: English, Singlish, Sinhala, or Tamil.",
                 "After helping, gently suggest one clear next step, like checking delivery, adding a card, or opening the gift box.",
@@ -356,9 +363,9 @@ export async function runOpenAIShoppingAgent(
                 "CRITICAL UI INSTRUCTION: DO NOT use markdown formatting like **bold** or *italics*. Your text is rendered as plain text.",
                 "CRITICAL UI INSTRUCTION: DO NOT list out product names or prices in your text response! The products will automatically be displayed in rich visual UI cards below your message. Keep your text response conversational and brief.",
 
-                "Deepen local personality: Sprinkle in colloquial Sri Lankan expressions naturally.",
-                "Use words like 'Aiyo', 'Ane', 'Hari', 'Ela', 'Niyamai', or 'Patta' in a respectful, friendly way so it feels human and local.",
-                "Reference Sri Lankan cultural festivals (e.g., Sinhala and Tamil New Year, Vesak, Christmas) or common gifting occasions when relevant.",
+                "Deepen local personality: Be highly conversational and use colloquial Sri Lankan expressions naturally, but respectfully.",
+                "Use phrases like 'Shaa, maru choice eka!' (Wow, great choice!), 'Aney, that’s so sweet!', 'Hari, let's find something perfect.', 'Patta!', or 'Niyamai!' (Great!) to make it feel human and local.",
+                "Reference Sri Lankan cultural context (e.g., 'Perfect for an Avurudu visit', 'Ideal for Amma\\'s birthday') when relevant.",
 
                 "CRITICAL INSTRUCTION - INTENT ROUTING & CHITCHAT:",
                 "If the user is just saying 'hello', 'thank you', 'ok', 'good', or making general conversation (chitchat), DO NOT CALL ANY TOOLS. Just reply warmly in character.",
@@ -367,6 +374,7 @@ export async function runOpenAIShoppingAgent(
                 "Never call a tool just to find something to talk about if the user didn't ask.",
 
                 "Use tools for product search, category browsing, delivery-city lookup, and order-tracking requests.",
+                "If the user asks to track an order (or 'where is my order'), call the track_order tool. If they don't provide an order number, ask them for one. You can suggest the test order number 'VPAY827982BA' as an example.",
                 "For catalog searches, choose ONE concise product keyword.",
                 "Never create orders or claim payment was completed. Checkout is handled externally.",
 
@@ -403,6 +411,7 @@ export async function runOpenAIShoppingAgent(
     let accumulatedGiftMessages: string[] = [];
     let accumulatedPreferences: Partial<RecipientPreferences> | undefined;
     let finalAction: ChatAction | undefined;
+    let accumulatedTrackedOrder: TrackOrderResult | undefined;
 
     try {
         for (let attempt = 0; attempt < 3; attempt++) {
@@ -426,6 +435,7 @@ export async function runOpenAIShoppingAgent(
                     deliveryCities: accumulatedDeliveryCities.length > 0 ? accumulatedDeliveryCities : undefined,
                     giftMessages: accumulatedGiftMessages.length > 0 ? accumulatedGiftMessages : undefined,
                     action: finalAction,
+                    trackedOrder: accumulatedTrackedOrder,
                     updatedPreferences: accumulatedPreferences
                 } : null;
             }
@@ -515,14 +525,17 @@ export async function runOpenAIShoppingAgent(
                             content: JSON.stringify({ success: true, cities: result.cities.map(c => c.name) })
                         });
                         accumulatedDeliveryCities.push(...result.cities);
-                    } else if (toolName === "show_tracking_form") {
+                    } else if (toolName === "track_order") {
+                        const input = parseArguments(toolCall.function.arguments) as { order_number: string };
+                        const rawResult = await trackOrder(input.order_number);
+                        const order = parseTrackOrderResult(rawResult);
                         conversationHistory.push({
                             role: "tool",
                             tool_call_id: toolCall.id,
                             name: toolName,
-                            content: JSON.stringify({ success: true })
+                            content: JSON.stringify({ success: true, status: order.status_display })
                         });
-                        finalAction = "show_tracking";
+                        accumulatedTrackedOrder = order;
                     } else if (toolName === "suggest_gift_message") {
                         const rawMessages = JSON.parse(toolCall.function.arguments);
                         conversationHistory.push({

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { AnimatePresence, motion } from "framer-motion";
 
 /**
  * A sliding drawer to display the user's saved wishlist items.
@@ -22,10 +23,6 @@ export function WishlistDrawer() {
 
   const [copied, setCopied] = useState(false);
 
-  if (!isOpen) {
-    return null;
-  }
-
   function handleClose() {
     setCopied(false);
     closeWishlist();
@@ -44,8 +41,24 @@ export function WishlistDrawer() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60">
-      <aside className="h-full w-full max-w-md overflow-y-auto bg-zinc-950 p-6 shadow-2xl">
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-black/60"
+            onClick={handleClose}
+          />
+          <motion.aside
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="relative h-full w-full max-w-md overflow-y-auto bg-zinc-950 p-6 shadow-2xl"
+          >
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">Wishlist ⭐</h2>
           <button
@@ -111,7 +124,9 @@ export function WishlistDrawer() {
             </div>
           </>
         )}
-      </aside>
-    </div>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
