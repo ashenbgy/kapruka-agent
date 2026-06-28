@@ -460,8 +460,7 @@ export async function runOpenAIShoppingAgent(
 
                         while (searchTerms.length > 0 && products.length === 0 && searchAttempt < 4) {
                             const currentQuery = searchTerms.join(" ");
-                            
-                            // Heuristic: If first attempt fails, the category is usually wrong/too strict. Drop it.
+                            // Often, a too-specific category blocks good results. We drop it on our first retry to cast a wider net.
                             if (searchAttempt > 0) {
                                 currentCategory = undefined;
                             }
@@ -479,7 +478,7 @@ export async function runOpenAIShoppingAgent(
                             products = await reflectAndFilterProducts(currentQuery, initialProducts, context?.recipientPreferences, openai);
 
                             if (products.length === 0) {
-                                // If dropping the category didn't help (attempt 1), start stripping adjectives from the front
+                                // If removing the category wasn't enough, we start peeling off descriptive words from the front of the query.
                                 if (searchAttempt > 0) {
                                     searchTerms.shift();
                                 }

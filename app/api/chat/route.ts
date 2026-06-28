@@ -734,7 +734,8 @@ function detectSearchQuery(
       (alias) =>
         alias.terms.some(
           (term) => {
-            // Use regex to avoid partial substring matches like "phone" in "headphone"
+            // We use word boundary regex checks here to prevent partial matches. 
+            // For example, we don't want "headphone" to accidentally trigger the "phone" category.
             const regex = new RegExp(`(?:^|\\W)${term}(?:$|\\W)`);
             return regex.test(normalized);
           }
@@ -940,12 +941,12 @@ function extractDeliveryCityQuery(
 
   const normalized = message.toLowerCase().trim();
 
-  // Direct exact match
+  // If the user just typed the exact name of a district, we can confidently route it.
   if (sriLankanDistricts.includes(normalized)) {
     return message.trim();
   }
 
-  // Also check if the message just says "deliver to X" where X is any word
+  // Next, we check against some common phrasing patterns (e.g. "can you deliver to Kandy?").
   const patterns = [
     /(?:deliver|delivery|ship|send)\s+(?:it\s+)?(?:to|for|in)\s+([a-zA-Z\s-]{2,40})/i,
     /(?:can you|could you)\s+(?:deliver|ship|send)\s+(?:to|for|in)\s+([a-zA-Z\s-]{2,40})/i,
@@ -960,7 +961,7 @@ function extractDeliveryCityQuery(
     }
   }
 
-  // If the message contains a district name along with words like 'deliver'
+  // As a final fallback, if the message mentions delivery intents alongside a known district, we extract that district.
   if (normalized.includes("deliver") || normalized.includes("send") || normalized.includes("ship")) {
     for (const district of sriLankanDistricts) {
       if (normalized.includes(district)) {

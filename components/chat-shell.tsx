@@ -18,7 +18,7 @@ import type {
 } from "@/types/chat";
 import { motion } from "framer-motion";
 
-// Analytics helpers for event logging and A/B testing.
+// We use these analytics helpers to track engagement and run A/B tests to improve the agent's performance over time.
 import { logEvent, getExperimentGroup } from "@/lib/analytics";
 
 import type {
@@ -137,7 +137,7 @@ const discoveryPaths = [
   },
 ];
 
-// Quick prompts for one-click inspiration. Includes common requests, seasonal suggestions and a surprise option for gamified discovery.
+// These quick prompts give users one-click inspiration. We include common requests, seasonal items, and a fun "Surprise me" option to encourage discovery.
 const quickPrompts = [
   "Show me electronics",
   "Show me home essentials",
@@ -320,13 +320,14 @@ export function ChatShell() {
     removeItem,
   } = useCartStore();
 
-  // Voice recognition and text-to-speech states
+  // These states manage our voice recognition capabilities so users can speak their requests.
   const [listening, setListening] = useState(false);
-  // Whether the assistant will speak its responses aloud
   const [voiceOutputEnabled, setVoiceOutputEnabled] = useState(true);
-  // Reference to the active speech recognition instance
+
+  // We keep a reference to the active speech recognition instance so we can stop it if the user clicks the mic button again.
   const recognitionRef = useRef<any>(null);
-  // Assign a persistent A/B experiment group on first load
+
+  // We assign a persistent A/B experiment group on the very first load to track feature effectiveness.
   const experimentGroupRef = useRef<string>(getExperimentGroup());
 
   function showToast(text: string) {
@@ -344,7 +345,7 @@ export function ChatShell() {
   ) {
     addItem(product);
 
-    // Record analytics for product additions
+    // Track when users add products to their cart to help us understand conversion rates.
     logEvent("add_to_cart", {
       id: product.id,
       name: product.name,
@@ -541,7 +542,10 @@ export function ChatShell() {
     });
   }, [messages, loading]);
 
-  // Speak out assistant messages using the Web Speech API when voice output is enabled.
+  /**
+   * This handles speaking out the assistant's messages using the Web Speech API, 
+   * creating a more accessible and interactive experience when voice output is turned on.
+   */
   useEffect(() => {
     if (!voiceOutputEnabled) {
       return;
@@ -595,7 +599,7 @@ export function ChatShell() {
       return;
     }
 
-    // Record analytics for outbound user message
+    // Log the outbound message to track user intent and engagement.
     logEvent("send_message", {
       message: trimmedMessage,
       category: category ?? null,
