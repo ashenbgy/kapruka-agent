@@ -8,6 +8,7 @@ import {
 } from "react";
 import { TrackedOrderCard } from "@/components/tracked-order-card";
 import { ProductCard } from "@/components/product-card";
+import { PayLinkCard } from "@/components/pay-link-card";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useCheckoutStore } from "@/lib/store/checkout-store";
 import type {
@@ -529,6 +530,7 @@ export function ChatShell() {
     city: selectedCity,
     deliveryDate,
     setDeliveryDetails,
+    setOrderResult,
   } = useCheckoutStore();
 
   useEffect(() => {
@@ -726,6 +728,8 @@ export function ChatShell() {
             data.action,
           trackedOrder:
             data.trackedOrder,
+          checkoutLink:
+            data.checkoutLink,
         };
 
       setMessages((current) => [
@@ -739,6 +743,21 @@ export function ChatShell() {
         if (data.updatedPreferences.dislikes) setDislikes(data.updatedPreferences.dislikes.join(", "));
         if (data.updatedPreferences.allergies) setAllergies(data.updatedPreferences.allergies.join(", "));
         if (data.updatedPreferences.budgetMax) setBudgetMax(data.updatedPreferences.budgetMax.toString());
+      }
+
+      if (data.action === "checkout" && data.checkoutLink) {
+        setOrderResult({
+            payLink: data.checkoutLink,
+            orderRef: "GUEST-ORDER",
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+            orderSummary: {
+                currency: "LKR",
+                items_total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                addons_total: 0,
+                delivery_fee: 0,
+                grand_total: items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            }
+        });
       }
     } catch (chatError) {
       console.error(chatError);
@@ -1223,6 +1242,12 @@ export function ChatShell() {
 
               {message.trackedOrder && (
                 <TrackedOrderCard order={message.trackedOrder} />
+              )}
+
+              {message.checkoutLink && (
+                <div className="mt-4 max-w-sm">
+                  <PayLinkCard />
+                </div>
               )}
             </motion.article>
           );

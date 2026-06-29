@@ -1,0 +1,610 @@
+[
+  {
+    "id": "SCRAPED_ITEM_1",
+    "name": "Twilight Berries - Black Velvet Chocolate Gateau Cake",
+    "price": 9760,
+    "description": "A lovely Twilight Berries - Black Velvet Chocolate Gateau Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/twilight-berries-black-velvet-/kid/cake00ka001551"
+  },
+  {
+    "id": "SCRAPED_ITEM_2",
+    "name": "Peach Butterfly Charm Ribbon Bento Cake",
+    "price": 3310,
+    "description": "A lovely Peach Butterfly Charm Ribbon Bento Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/peach-butterfly-charm-ribbon-b/kid/cake00ka002171"
+  },
+  {
+    "id": "SCRAPED_ITEM_3",
+    "name": "Happy Birthday Butterfly Princess Castle Ribbon Tower Cake",
+    "price": 14850,
+    "description": "A lovely Happy Birthday Butterfly Princess Castle Ribbon Tower Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/happy-birthday-butterfly-princ/kid/cake00ka001933"
+  },
+  {
+    "id": "SCRAPED_ITEM_4",
+    "name": "Simple Joy Chocolate Cake",
+    "price": 4280,
+    "description": "A lovely Simple Joy Chocolate Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/simple-joy-chocolate-cake/kid/cake00ka002136"
+  },
+  {
+    "id": "SCRAPED_ITEM_5",
+    "name": "Java Passion Mousse White Chocolate Cake",
+    "price": 9310,
+    "description": "A lovely Java Passion Mousse White Chocolate Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/java-passion-mousse-white-choc/kid/cakejava00154"
+  },
+  {
+    "id": "SCRAPED_ITEM_6",
+    "name": "Salted Caramel ( GMC )",
+    "price": 5230,
+    "description": "A lovely Salted Caramel ( GMC ) from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/salted-caramel-gmc/kid/cakegmc00317"
+  },
+  {
+    "id": "SCRAPED_ITEM_7",
+    "name": "Hilton Dark Chocolate Surprise Cake 1kg",
+    "price": 8840,
+    "description": "A lovely Hilton Dark Chocolate Surprise Cake 1kg from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/hilton-dark-chocolate-surprise/kid/cakehtn00278"
+  },
+  {
+    "id": "SCRAPED_ITEM_8",
+    "name": "Breadtalk Eggless Cake",
+    "price": 2750,
+    "description": "A lovely Breadtalk Eggless Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/breadtalk-eggless-cake/kid/cakebt00291"
+  },
+  {
+    "id": "SCRAPED_ITEM_9",
+    "name": "Cinnamon Grand Blueberry Glaze Cake",
+    "price": 8830,
+    "description": "A lovely Cinnamon Grand Blueberry Glaze Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/cinnamon-grand-blueberry-glaze/kid/cakecg00166"
+  },
+  {
+    "id": "SCRAPED_ITEM_10",
+    "name": "Kandy Myst By Cinnamon Chocolate Fudge Brownie Cake",
+    "price": 11720,
+    "description": "A lovely Kandy Myst By Cinnamon Chocolate Fudge Brownie Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/kandy-myst-by-cinnamon-chocola/kid/cakekmc00104"
+  },
+  {
+    "id": "SCRAPED_ITEM_11",
+    "name": "Earl`s Regent Red Velvet Cake",
+    "price": 11030,
+    "description": "A lovely Earl`s Regent Red Velvet Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/earl-s-regent-red-velvet-cake/kid/cakeerk0098"
+  },
+  {
+    "id": "SCRAPED_ITEM_12",
+    "name": "Waters Edge Chocolate Fudge Cake",
+    "price": 10750,
+    "description": "A lovely Waters Edge Chocolate Fudge Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/waters-edge-chocolate-fudge-ca/kid/cakewe0091"
+  },
+  {
+    "id": "SCRAPED_ITEM_13",
+    "name": "Kapruka Blueberry Cheese Cake",
+    "price": 12500,
+    "description": "A lovely Kapruka Blueberry Cheese Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/kapruka-blueberry-cheese-cake/kid/cake00ka001264"
+  },
+  {
+    "id": "SCRAPED_ITEM_14",
+    "name": "Heavenly Chocolate Fudge Cake",
+    "price": 4650,
+    "description": "A lovely Heavenly Chocolate Fudge Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/heavenly-chocolate-fudge-cake/kid/cake00ka001353"
+  },
+  {
+    "id": "SCRAPED_ITEM_15",
+    "name": "Fruit Medley Delight Gateau Cake",
+    "price": 6040,
+    "description": "A lovely Fruit Medley Delight Gateau Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/fruit-medley-delight-gateau-ca/kid/cake00ka001558"
+  },
+  {
+    "id": "SCRAPED_ITEM_16",
+    "name": "Bubble Pop Birthday Ribbon Tower Cake",
+    "price": 12500,
+    "description": "A lovely Bubble Pop Birthday Ribbon Tower Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/bubble-pop-birthday-ribbon-tow/kid/cake00ka001561"
+  },
+  {
+    "id": "SCRAPED_ITEM_17",
+    "name": "Floral Fantasy Happy Birthday Cake",
+    "price": 5950,
+    "description": "A lovely Floral Fantasy Happy Birthday Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/floral-fantasy-happy-birthday-/kid/cake00ka001562"
+  },
+  {
+    "id": "SCRAPED_ITEM_18",
+    "name": "Love Struck Heart Shape Gateau Cake",
+    "price": 6330,
+    "description": "A lovely Love Struck Heart Shape Gateau Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/love-struck-heart-shape-gateau/kid/cake00ka001597"
+  },
+  {
+    "id": "SCRAPED_ITEM_19",
+    "name": "Floral Square Elegance Ribbon Cake",
+    "price": 7800,
+    "description": "A lovely Floral Square Elegance Ribbon Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/floral-square-elegance-ribbon-/kid/cake00ka001612"
+  },
+  {
+    "id": "SCRAPED_ITEM_20",
+    "name": "Pastel Pink Perfection Ribbon Tower Cake",
+    "price": 12500,
+    "description": "A lovely Pastel Pink Perfection Ribbon Tower Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/pastel-pink-perfection-ribbon-/kid/cake00ka001674"
+  },
+  {
+    "id": "SCRAPED_ITEM_21",
+    "name": "Triple Delight Gateau Cake",
+    "price": 5590,
+    "description": "A lovely Triple Delight Gateau Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/triple-delight-gateau-cake/kid/cake00ka001679"
+  },
+  {
+    "id": "SCRAPED_ITEM_22",
+    "name": "Rainbow Magic Cake",
+    "price": 8580,
+    "description": "A lovely Rainbow Magic Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/rainbow-magic-cake/kid/cake00ka001728"
+  },
+  {
+    "id": "SCRAPED_ITEM_23",
+    "name": "Floral Pink Petal Bliss Ribbon Cake",
+    "price": 5840,
+    "description": "A lovely Floral Pink Petal Bliss Ribbon Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/floral-pink-petal-bliss-ribbon/kid/cake00ka001733"
+  },
+  {
+    "id": "SCRAPED_ITEM_24",
+    "name": "Kalo Cookie Crunch Cheese Cake",
+    "price": 8500,
+    "description": "A lovely Kalo Cookie Crunch Cheese Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/kalo-cookie-crunch-cheese-cake/kid/cake00ka001741"
+  },
+  {
+    "id": "SCRAPED_ITEM_25",
+    "name": "Blueberry Cashew Bliss Cheese Cake",
+    "price": 8500,
+    "description": "A lovely Blueberry Cashew Bliss Cheese Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/blueberry-cashew-bliss-cheese-/kid/cake00ka001749"
+  },
+  {
+    "id": "SCRAPED_ITEM_26",
+    "name": "Strawberry Sonata Chocolate Cake",
+    "price": 9950,
+    "description": "A lovely Strawberry Sonata Chocolate Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/strawberry-sonata-chocolate-ca/kid/cake00ka001790"
+  },
+  {
+    "id": "SCRAPED_ITEM_27",
+    "name": "Golden Bloom Chocolate Cake",
+    "price": 6630,
+    "description": "A lovely Golden Bloom Chocolate Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/golden-bloom-chocolate-cake/kid/cake00ka001793"
+  },
+  {
+    "id": "SCRAPED_ITEM_28",
+    "name": "Ruby Duet Bento Chocolate Cake With 2 Heart White Chocolates",
+    "price": 4500,
+    "description": "A lovely Ruby Duet Bento Chocolate Cake With 2 Heart White Chocolates from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/ruby-duet-bento-chocolate-cake/kid/cake00ka001820"
+  },
+  {
+    "id": "SCRAPED_ITEM_29",
+    "name": "Midnight Majesty Chocolate Sponge Cake",
+    "price": 7480,
+    "description": "A lovely Midnight Majesty Chocolate Sponge Cake from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/midnight-majesty-chocolate-spo/kid/cake00ka001844"
+  },
+  {
+    "id": "SCRAPED_ITEM_30",
+    "name": "Chrysanthemum Charm Delight Bouquet",
+    "price": 6720,
+    "description": "A lovely Chrysanthemum Charm Delight Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/chrysanthemum-charm-delight-bo/kid/flowers00t1631"
+  },
+  {
+    "id": "SCRAPED_ITEM_31",
+    "name": "Crimson Gold Bouquet",
+    "price": 4850,
+    "description": "A lovely Crimson Gold Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/crimson-gold-bouquet/kid/flowers00t2152"
+  },
+  {
+    "id": "SCRAPED_ITEM_32",
+    "name": "Ivory Lily Rose Bouquet",
+    "price": 6800,
+    "description": "A lovely Ivory Lily Rose Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/ivory-lily-rose-bouquet/kid/flowers00t2153"
+  },
+  {
+    "id": "SCRAPED_ITEM_33",
+    "name": "Rosy Charm Bouquet",
+    "price": 7500,
+    "description": "A lovely Rosy Charm Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/rosy-charm-bouquet/kid/flowers00t2150"
+  },
+  {
+    "id": "SCRAPED_ITEM_34",
+    "name": "Be Mine Rose Bouquet With 7 Red Roses",
+    "price": 3500,
+    "description": "A lovely Be Mine Rose Bouquet With 7 Red Roses from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/be-mine-rose-bouquet-with-7-re/kid/flowers00t2067"
+  },
+  {
+    "id": "SCRAPED_ITEM_35",
+    "name": "Golden Whisper Bloom Bouquet",
+    "price": 6790,
+    "description": "A lovely Golden Whisper Bloom Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/golden-whisper-bloom-bouquet/kid/flowers00t2115"
+  },
+  {
+    "id": "SCRAPED_ITEM_36",
+    "name": "Petal Palette Bouquet",
+    "price": 3800,
+    "description": "A lovely Petal Palette Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/petal-palette-bouquet/kid/flowers00t2146"
+  },
+  {
+    "id": "SCRAPED_ITEM_37",
+    "name": "Love Bliss 7 Pink Rose Bouquet",
+    "price": 3500,
+    "description": "A lovely Love Bliss 7 Pink Rose Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/love-bliss-7-pink-rose-bouquet/kid/flowers00t2132"
+  },
+  {
+    "id": "SCRAPED_ITEM_38",
+    "name": "Solstice Glow Bouquet",
+    "price": 5080,
+    "description": "A lovely Solstice Glow Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/solstice-glow-bouquet/kid/flowers00t1807"
+  },
+  {
+    "id": "SCRAPED_ITEM_39",
+    "name": "``ultimate Love`` 120 Red Roses Premium Arrangement",
+    "price": 51850,
+    "description": "A lovely ``ultimate Love`` 120 Red Roses Premium Arrangement from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/ultimate-love-120-red-roses-pr/kid/flowers00t2076"
+  },
+  {
+    "id": "SCRAPED_ITEM_40",
+    "name": "Rosy Harmony Bloom Arrangement",
+    "price": 4310,
+    "description": "A lovely Rosy Harmony Bloom Arrangement from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/rosy-harmony-bloom-arrangement/kid/flowers00t2128"
+  },
+  {
+    "id": "SCRAPED_ITEM_41",
+    "name": "Pink Heart Box Arrangement With 15 Pink Roses Ferrero Rocher Chocolates",
+    "price": 12190,
+    "description": "A lovely Pink Heart Box Arrangement With 15 Pink Roses Ferrero Rocher Chocolates from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/pink-heart-box-arrangement-wit/kid/flowers00t2088"
+  },
+  {
+    "id": "SCRAPED_ITEM_42",
+    "name": "Timeless Twelve Bouquet - 12 Red Roses",
+    "price": 5260,
+    "description": "A lovely Timeless Twelve Bouquet - 12 Red Roses from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/timeless-twelve-bouquet-12-red/kid/flowers00t1670"
+  },
+  {
+    "id": "SCRAPED_ITEM_43",
+    "name": "Pink Rose Whisper Bouquet",
+    "price": 5450,
+    "description": "A lovely Pink Rose Whisper Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/pink-rose-whisper-bouquet/kid/flowers00t2112"
+  },
+  {
+    "id": "SCRAPED_ITEM_44",
+    "name": "7 Pink Petal Bouquet",
+    "price": 4750,
+    "description": "A lovely 7 Pink Petal Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/7-pink-petal-bouquet/kid/flowers00t2127"
+  },
+  {
+    "id": "SCRAPED_ITEM_45",
+    "name": "Skies Garden Bouquet",
+    "price": 4100,
+    "description": "A lovely Skies Garden Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/skies-garden-bouquet/kid/flowers00t1805"
+  },
+  {
+    "id": "SCRAPED_ITEM_46",
+    "name": "Sunshine Texas Bouquet With 8 Yellow Roses",
+    "price": 13710,
+    "description": "A lovely Sunshine Texas Bouquet With 8 Yellow Roses from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/sunshine-texas-bouquet-with-8-/kid/flowers00t1969"
+  },
+  {
+    "id": "SCRAPED_ITEM_47",
+    "name": "Golden Blush Elegant Rose Bouquet",
+    "price": 8890,
+    "description": "A lovely Golden Blush Elegant Rose Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/golden-blush-elegant-rose-bouq/kid/flowers00t2085"
+  },
+  {
+    "id": "SCRAPED_ITEM_48",
+    "name": "Blushing 7 Pink Roses Bouquet",
+    "price": 6520,
+    "description": "A lovely Blushing 7 Pink Roses Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/blushing-7-pink-roses-bouquet/kid/flowers00t2093"
+  },
+  {
+    "id": "SCRAPED_ITEM_49",
+    "name": "Forever Mine Rose Bouquet With 8 Red Roses",
+    "price": 4200,
+    "description": "A lovely Forever Mine Rose Bouquet With 8 Red Roses from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/forever-mine-rose-bouquet-with/kid/flowers00t2068"
+  },
+  {
+    "id": "SCRAPED_ITEM_50",
+    "name": "Pink Paradise Heart Bloom Box",
+    "price": 5880,
+    "description": "A lovely Pink Paradise Heart Bloom Box from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/pink-paradise-heart-bloom-box/kid/flowers00t2121"
+  },
+  {
+    "id": "SCRAPED_ITEM_51",
+    "name": "Elegant 30 Red Roses Premium Bouquet",
+    "price": 12800,
+    "description": "A lovely Elegant 30 Red Roses Premium Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/elegant-30-red-roses-premium-b/kid/flowers00t2010"
+  },
+  {
+    "id": "SCRAPED_ITEM_52",
+    "name": "Sunshine Love 8 Yellow Rose Bouquet",
+    "price": 5380,
+    "description": "A lovely Sunshine Love 8 Yellow Rose Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/sunshine-love-8-yellow-rose-bo/kid/flowers00t2136"
+  },
+  {
+    "id": "SCRAPED_ITEM_53",
+    "name": "Butterfly Blossom Bouquet",
+    "price": 8250,
+    "description": "A lovely Butterfly Blossom Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/butterfly-blossom-bouquet/kid/flowers00t2151"
+  },
+  {
+    "id": "SCRAPED_ITEM_54",
+    "name": "Golden Sunshine Bouquet",
+    "price": 9700,
+    "description": "A lovely Golden Sunshine Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/golden-sunshine-bouquet/kid/flowers00t2149"
+  },
+  {
+    "id": "SCRAPED_ITEM_55",
+    "name": "Graduation Bloom Teddy Bouquet",
+    "price": 7880,
+    "description": "A lovely Graduation Bloom Teddy Bouquet from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/graduation-bloom-teddy-bouquet/kid/flowers00t2145"
+  },
+  {
+    "id": "SCRAPED_ITEM_56",
+    "name": "MECHANICAL FORKLIFT CONSTRUCTION TOY",
+    "price": 2290,
+    "description": "A lovely MECHANICAL FORKLIFT CONSTRUCTION TOY from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/mechanical-forklift-constructi/kid/kidstoy0z1584"
+  },
+  {
+    "id": "SCRAPED_ITEM_57",
+    "name": "Turbo Train And Stunt Adventure Pack",
+    "price": 11500,
+    "description": "A lovely Turbo Train And Stunt Adventure Pack from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/turbo-train-and-stunt-adventur/kid/kidstoy0z1673"
+  },
+  {
+    "id": "SCRAPED_ITEM_58",
+    "name": "Galaxy Adventure Kids Toy Pack",
+    "price": 15500,
+    "description": "A lovely Galaxy Adventure Kids Toy Pack from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/galaxy-adventure-kids-toy-pack/kid/kidstoy0z1672"
+  },
+  {
+    "id": "SCRAPED_ITEM_59",
+    "name": "Kids Mini Car Collection - 16 Mini Pull Back Toy Vehicles In A Big Car Bottle - Birthday Gift For Boys And Girls",
+    "price": 1470,
+    "description": "A lovely Kids Mini Car Collection - 16 Mini Pull Back Toy Vehicles In A Big Car Bottle - Birthday Gift For Boys And Girls from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/kids-mini-car-collection-16-mi/kid/kidstoy0z1521"
+  },
+  {
+    "id": "SCRAPED_ITEM_60",
+    "name": "Railway Express Vintage Train Set - DIY Classical Toy Train For Kids (23 Pcs)",
+    "price": 4590,
+    "description": "A lovely Railway Express Vintage Train Set - DIY Classical Toy Train For Kids (23 Pcs) from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/railway-express-vintage-train-/kid/kidstoy0z1653"
+  },
+  {
+    "id": "SCRAPED_ITEM_61",
+    "name": "Baby Kids Interactive Doll Playset 3 In 1 Role Play Fun",
+    "price": 6850,
+    "description": "A lovely Baby Kids Interactive Doll Playset 3 In 1 Role Play Fun from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/baby-kids-interactive-doll-pla/kid/kidstoy0z1648"
+  },
+  {
+    "id": "SCRAPED_ITEM_62",
+    "name": "Vantage Train DIY Classic Train Set 23 Piece Buildable Railway Toy For Kids",
+    "price": 5800,
+    "description": "A lovely Vantage Train DIY Classic Train Set 23 Piece Buildable Railway Toy For Kids from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/vantage-train-diy-classic-trai/kid/kidstoy0z1654"
+  },
+  {
+    "id": "SCRAPED_ITEM_63",
+    "name": "MILITARY MISSILE",
+    "price": 2480,
+    "description": "A lovely MILITARY MISSILE from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/military-missile/kid/kidstoy0z1548"
+  },
+  {
+    "id": "SCRAPED_ITEM_64",
+    "name": "Stitch Mini Figurine Collection (set Of 10) - Bright And Charming Disney Characters",
+    "price": 1890,
+    "description": "A lovely Stitch Mini Figurine Collection (set Of 10) - Bright And Charming Disney Characters from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/stitch-mini-figurine-collectio/kid/kidstoy0z1643"
+  },
+  {
+    "id": "SCRAPED_ITEM_65",
+    "name": "Emily Rising Star Doll With Bicycle",
+    "price": 2940,
+    "description": "A lovely Emily Rising Star Doll With Bicycle from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/emily-rising-star-doll-with-bi/kid/kidstoy0z1613"
+  },
+  {
+    "id": "SCRAPED_ITEM_66",
+    "name": "Baby Shark Kids Toy With Music ,lights And Rotation",
+    "price": 2200,
+    "description": "A lovely Baby Shark Kids Toy With Music ,lights And Rotation from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/baby-shark-kids-toy-with-music/kid/kidstoy0z1560"
+  },
+  {
+    "id": "SCRAPED_ITEM_67",
+    "name": "Military Power Gun Set For Kids",
+    "price": 5250,
+    "description": "A lovely Military Power Gun Set For Kids from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/military-power-gun-set-for-kids/kid/kidstoy0z1619"
+  },
+  {
+    "id": "SCRAPED_ITEM_68",
+    "name": "Stunt Car With Fancy Stunt Function 360° Spins 180° Flips",
+    "price": 4500,
+    "description": "A lovely Stunt Car With Fancy Stunt Function 360° Spins 180° Flips from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/stunt-car-with-fancy-stunt-fun/kid/kidstoy0z1651"
+  },
+  {
+    "id": "SCRAPED_ITEM_69",
+    "name": "3 In 1 Boat Mini Remote Control Drone Car",
+    "price": 10580,
+    "description": "A lovely 3 In 1 Boat Mini Remote Control Drone Car from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/3-in-1-boat-mini-remote-contro/kid/kidstoy0z1601"
+  },
+  {
+    "id": "SCRAPED_ITEM_70",
+    "name": "Stunt Shark Toy",
+    "price": 2730,
+    "description": "A lovely Stunt Shark Toy from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/stunt-shark-toy/kid/kidstoy0z1585"
+  },
+  {
+    "id": "SCRAPED_ITEM_71",
+    "name": "Bow And Arrow Kids Play Set",
+    "price": 3200,
+    "description": "A lovely Bow And Arrow Kids Play Set from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/bow-and-arrow-kids-play-set/kid/kidstoy0z1421"
+  },
+  {
+    "id": "SCRAPED_ITEM_72",
+    "name": "Pokemon Battle Figure Multi Pack",
+    "price": 3500,
+    "description": "A lovely Pokemon Battle Figure Multi Pack from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/pokemon-battle-figure-multi-pa/kid/kidstoy0z1387"
+  },
+  {
+    "id": "SCRAPED_ITEM_73",
+    "name": "Doll Star Drummer Playset For Girl",
+    "price": 3270,
+    "description": "A lovely Doll Star Drummer Playset For Girl from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/doll-star-drummer-playset-for-/kid/kidstoy0z1200"
+  },
+  {
+    "id": "SCRAPED_ITEM_74",
+    "name": "Super Storm Military Helicopter Toy",
+    "price": 2450,
+    "description": "A lovely Super Storm Military Helicopter Toy from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/super-storm-military-helicopte/kid/kidstoy0z1566"
+  },
+  {
+    "id": "SCRAPED_ITEM_75",
+    "name": "Kids Knitting Machine - Gift For Kids",
+    "price": 1580,
+    "description": "A lovely Kids Knitting Machine - Gift For Kids from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/kids-knitting-machine-gift-for/kid/kidstoy0z1528"
+  },
+  {
+    "id": "SCRAPED_ITEM_76",
+    "name": "Elite Army Adventure Play Set",
+    "price": 3800,
+    "description": "A lovely Elite Army Adventure Play Set from Kapruka.",
+    "availability": "In Stock",
+    "url": "https://www.kapruka.com/buyonline/elite-army-adventure-play-set/kid/kidstoy0z1632"
+  }
+]

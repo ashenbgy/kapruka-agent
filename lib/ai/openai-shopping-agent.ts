@@ -6,12 +6,15 @@ import {
     listDeliveryCities,
     searchProducts,
     trackOrder,
+    checkDelivery,
+    createOrder,
 } from "@/lib/kapruka-tools";
 import { parseCategories } from "@/lib/parsers/categories";
 import { parseDeliveryCities } from "@/lib/parsers/delivery-cities";
 import { parseSearchProducts } from "@/lib/parsers/search-products";
 import { parseTrackOrderResult } from "@/lib/parsers/track-order";
 import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
+import { searchSemanticCatalog } from "@/lib/ai/qdrant-memory";
 import type {
     ChatApiResponse,
     ShoppingChatContext,
@@ -128,6 +131,26 @@ const deliveryCityArgumentsSchema = z
     })
     .strict();
 
+const checkDeliveryArgumentsSchema = z
+    .object({
+        city: z.string().trim().min(1).max(100),
+        delivery_date: z.string().trim().min(1).max(20),
+        product_id: z.string().trim().min(1).max(100).nullable().optional(),
+    })
+    .strict();
+
+const createOrderArgumentsSchema = z
+    .object({
+        recipient_name: z.string().trim().min(1).max(100),
+        recipient_phone: z.string().trim().min(1).max(20),
+        delivery_address: z.string().trim().min(1).max(500),
+        delivery_city: z.string().trim().min(1).max(100),
+        delivery_date: z.string().trim().min(1).max(20),
+        sender_name: z.string().trim().min(1).max(100),
+        gift_message: z.string().trim().max(1000).nullable(),
+    })
+    .strict();
+
 function getFeaturedCategories(
     categories: KaprukaCategory[],
 ) {
@@ -196,6 +219,27 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] =
                         "max_price",
                         "category",
                     ],
+                    additionalProperties: false,
+                },
+            },
+        },
+        {
+            type: "function",
+            function: {
+                name: "semantic_search_catalog",
+                description:
+                    "Search the Long-Term Memory (Vector DB) for more abstract or conceptual gift ideas (e.g. 'anniversary gifts for wife', 'cute toys'). Use this when search_products is too strict or when you need vague recommendations.",
+                strict: true,
+                parameters: {
+                    type: "object",
+                    properties: {
+                        query: {
+                            type: "string",
+                            description:
+                                "The abstract search query.",
+                        },
+                    },
+                    required: ["query"],
                     additionalProperties: false,
                 },
             },
@@ -323,6 +367,48 @@ const tools: OpenAI.Chat.Completions.ChatCompletionTool[] =
                 },
             },
         },
+        {
+            type: "function",
+            function: {
+                name: "check_delivery",
+                description:
+                    "Check whether delivery is possible to a specific city on a given date. Do NOT call this during the checkout flow (just call create_order directly). Only use this if the user is explicitly asking about delivery availability or pricing before they are ready to checkout.",
+                strict: true,
+                parameters: {
+                    type: "object",
+                    properties: {
+                        city: { type: "string", description: "The recipient's city." },
+                        delivery_date: { type: "string", description: "The delivery date (YYYY-MM-DD)." },
+                        product_id: { type: ["string", "null"], description: "Optional product ID from the cart." },
+                    },
+                    required: ["city", "delivery_date", "product_id"],
+                    additionalProperties: false,
+                },
+            },
+        },
+        {
+            type: "function",
+            function: {
+                name: "create_order",
+                description:
+                    "Generate a checkout link for the user's cart. You MUST collect the recipient's name, phone, address, city, delivery date, and sender name before calling this. Do not hallucinate these details. The cart will automatically be pulled from the session context.",
+                strict: true,
+                parameters: {
+                    type: "object",
+                    properties: {
+                        recipient_name: { type: "string" },
+                        recipient_phone: { type: "string" },
+                        delivery_address: { type: "string" },
+                        delivery_city: { type: "string" },
+                        delivery_date: { type: "string", description: "YYYY-MM-DD" },
+                        sender_name: { type: "string" },
+                        gift_message: { type: ["string", "null"] },
+                    },
+                    required: ["recipient_name", "recipient_phone", "delivery_address", "delivery_city", "delivery_date", "sender_name", "gift_message"],
+                    additionalProperties: false,
+                },
+            },
+        },
     ];
 
 function parseArguments(
@@ -369,14 +455,14 @@ export async function runOpenAIShoppingAgent(
 
                 "CRITICAL INSTRUCTION - INTENT ROUTING & CHITCHAT:",
                 "If the user is just saying 'hello', 'thank you', 'ok', 'good', or making general conversation (chitchat), DO NOT CALL ANY TOOLS. Just reply warmly in character.",
-                "Only call tools (search_products, list_categories, find_delivery_city) when the user explicitly asks to find, buy, browse, recommend, or check something.",
-                "If the user asks for a recommendation or gift idea, DO NOT just offer text suggestions. ALWAYS call the search_products tool immediately to show them real live products.",
+                "Only call tools (search_products, semantic_search_catalog, list_categories, find_delivery_city) when the user explicitly asks to find, buy, browse, recommend, or check something.",
+                "If the user asks for a recommendation or general gift idea, YOU MUST FIRST call the semantic_search_catalog tool to search Long-Term Memory. Only use search_products for specific, direct queries (like 'iPhone 15' or 'chocolate cake').",
                 "Never call a tool just to find something to talk about if the user didn't ask.",
 
                 "Use tools for product search, category browsing, delivery-city lookup, and order-tracking requests.",
                 "If the user asks to track an order (or 'where is my order'), call the track_order tool. If they don't provide an order number, ask them for one. You can suggest the test order number 'VPAY827982BA' as an example.",
                 "For catalog searches, choose ONE concise product keyword.",
-                "Never create orders or claim payment was completed. Checkout is handled externally.",
+                "When the user is ready to checkout, you MUST ask for their recipient name, phone, delivery address, city, date, and sender name. Once you have these, use the create_order tool DIRECTLY. Do NOT use find_delivery_city or check_delivery when the user is trying to checkout. Let Kapruka validate the city automatically.",
 
                 "Use the shopping-session context to understand follow-ups like 'cheaper options' or 'only flowers'.",
                 "If the user's shopping cart has items (see context), occasionally suggest one natural, complementary item (e.g., candles for a cake, a card for flowers) to upsell them without being pushy.",
@@ -412,6 +498,7 @@ export async function runOpenAIShoppingAgent(
     let accumulatedPreferences: Partial<RecipientPreferences> | undefined;
     let finalAction: ChatAction | undefined;
     let accumulatedTrackedOrder: TrackOrderResult | undefined;
+    let accumulatedCheckoutLink: string | undefined;
 
     try {
         for (let attempt = 0; attempt < 3; attempt++) {
@@ -436,7 +523,8 @@ export async function runOpenAIShoppingAgent(
                     giftMessages: accumulatedGiftMessages.length > 0 ? accumulatedGiftMessages : undefined,
                     action: finalAction,
                     trackedOrder: accumulatedTrackedOrder,
-                    updatedPreferences: accumulatedPreferences
+                    updatedPreferences: accumulatedPreferences,
+                    checkoutLink: accumulatedCheckoutLink
                 } : null;
             }
 
@@ -492,6 +580,29 @@ export async function runOpenAIShoppingAgent(
                                 tool_call_id: toolCall.id,
                                 name: toolName,
                                 content: JSON.stringify({ error: `0 products found even after broadening search. The user asked for '${input.q}'. Tell them you couldn't find it.` })
+                            });
+                        } else {
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ success: true, count: products.length, products: products.map(p => ({ name: p.name, price: p.price })) })
+                            });
+                            accumulatedProducts.push(...products);
+                        }
+                    } else if (toolName === "semantic_search_catalog") {
+                        const input = JSON.parse(rawArguments as string);
+                        let products = await searchSemanticCatalog(input.query, context?.recipientPreferences);
+
+                        // Safety reflect & filter loop via LLM (as part of TEAM agent logic)
+                        products = await reflectAndFilterProducts(input.query, products, context?.recipientPreferences, openai);
+
+                        if (products.length === 0) {
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ error: `0 products found in semantic search for '${input.query}'.` })
                             });
                         } else {
                             conversationHistory.push({
@@ -561,6 +672,112 @@ export async function runOpenAIShoppingAgent(
                             name: toolName,
                             content: JSON.stringify({ success: true, updated: true })
                         });
+                    } else if (toolName === "check_delivery") {
+                        const input = checkDeliveryArgumentsSchema.parse(rawArguments);
+                        const rawResult = await checkDelivery({
+                            city: input.city,
+                            delivery_date: input.delivery_date,
+                            product_id: input.product_id ?? undefined
+                        });
+                        conversationHistory.push({
+                            role: "tool",
+                            tool_call_id: toolCall.id,
+                            name: toolName,
+                            content: JSON.stringify({ success: true, result: rawResult })
+                        });
+                    } else if (toolName === "create_order") {
+                        const input = createOrderArgumentsSchema.parse(rawArguments);
+
+                        if (!context?.cart || context.cart.length === 0) {
+                            throw new Error("The user's cart is empty! Tell them to add items to their cart first.");
+                        }
+
+                        const cartItems = context.cart.map(item => ({
+                            product_id: item.id,
+                            quantity: item.quantity,
+                            icing_text: null
+                        }));
+
+                        const orderRequest = {
+                            cart: cartItems,
+                            recipient: {
+                                name: input.recipient_name,
+                                phone: input.recipient_phone
+                            },
+                            delivery: {
+                                address: input.delivery_address,
+                                city: input.delivery_city,
+                                location_type: "house" as const,
+                                date: input.delivery_date
+                            },
+                            sender: {
+                                name: input.sender_name,
+                                anonymous: false
+                            },
+                            gift_message: input.gift_message,
+                            currency: "LKR" as const,
+                            response_format: "json" as const
+                        };
+
+                        const rawResult = await createOrder(orderRequest);
+
+                        let payUrl = null;
+                        let errorMessage = null;
+
+                        if ((rawResult as any)?.isError) {
+                            errorMessage = (rawResult as any)?.content?.[0]?.text || "Unknown Kapruka error";
+                        } else {
+                            try {
+                                const contentArray = rawResult?.content;
+                                const textContent = Array.isArray(contentArray) ? contentArray.find(c => c.type === "text")?.text : null;
+                                const stringOutput = textContent || (rawResult as any)?.structuredContent?.result;
+
+                                if (stringOutput) {
+                                    if (stringOutput.toLowerCase().includes("error")) {
+                                        errorMessage = stringOutput;
+                                    } else {
+                                        let potentialUrlStr = stringOutput;
+                                        try {
+                                            const parsed = JSON.parse(stringOutput);
+                                            payUrl = parsed.pay_url || parsed.url || parsed.checkoutUrl || parsed.checkout_url;
+                                            if (!payUrl && parsed.result && typeof parsed.result === "string") {
+                                                potentialUrlStr = parsed.result;
+                                            }
+                                        } catch {
+                                            // Not JSON, potentialUrlStr remains stringOutput
+                                        }
+
+                                        if (!payUrl) {
+                                            const urlMatch = potentialUrlStr.match(/https?:\/\/[^\s"'`]+/);
+                                            if (urlMatch) {
+                                                payUrl = urlMatch[0];
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Failed to parse create_order result", e);
+                                errorMessage = "Failed to parse Kapruka response";
+                            }
+                        }
+
+                        if (payUrl) {
+                            accumulatedCheckoutLink = payUrl;
+                            finalAction = "checkout";
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ success: true, message: "Order created successfully. The checkout link is now ready." })
+                            });
+                        } else {
+                            conversationHistory.push({
+                                role: "tool",
+                                tool_call_id: toolCall.id,
+                                name: toolName,
+                                content: JSON.stringify({ error: errorMessage || "Failed to generate checkout link from Kapruka." })
+                            });
+                        }
                     } else {
                         conversationHistory.push({
                             role: "tool",

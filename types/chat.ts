@@ -7,6 +7,7 @@ import type { TrackOrderResult } from "@/types/tracking";
 
 export type ChatAction =
   | "show_tracking"
+  | "checkout"
   | "none";
 
 export interface ChatMessage {
@@ -19,6 +20,7 @@ export interface ChatMessage {
   giftMessages?: string[];
   action?: ChatAction;
   trackedOrder?: TrackOrderResult;
+  checkoutLink?: string;
 }
 
 export interface ChatContextMessage {
@@ -62,4 +64,5 @@ export interface ChatApiResponse {
   trackedOrder?: TrackOrderResult;
   updatedPreferences?: Partial<RecipientPreferences>;
   error?: string;
+  checkoutLink?: string;
 }

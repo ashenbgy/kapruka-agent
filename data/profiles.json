@@ -1,0 +1,14 @@
+{
+  "default-user": {
+    "id": "default-user",
+    "preferences": {
+      "likes": [],
+      "dislikes": [],
+      "allergies": [
+        "peanuts"
+      ],
+      "relationship": "wife"
+    },
+    "updatedAt": "2026-06-29T07:18:19.726Z"
+  }
+}

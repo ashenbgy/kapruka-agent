@@ -20,6 +20,7 @@ import type {
 
 import { runOpenAIShoppingAgent } from "@/lib/ai/openai-shopping-agent";
 import { prepareRecommendationProducts } from "@/lib/recommendation-filters";
+import { getProfile, updateProfile } from "@/lib/store/semantic-memory";
 
 const contextMessageSchema = z.object({
   role: z.enum([
@@ -941,6 +942,11 @@ function extractDeliveryCityQuery(
 
   const normalized = message.toLowerCase().trim();
 
+  // If the message is long or contains checkout details, let the AI handle it instead of hijacking.
+  if (normalized.length > 80 || (normalized.includes("name") && normalized.includes("phone"))) {
+    return null;
+  }
+
   // If the user just typed the exact name of a district, we can confidently route it.
   if (sriLankanDistricts.includes(normalized)) {
     return message.trim();
@@ -1316,10 +1322,29 @@ export async function POST(
     const {
       message,
       category,
-      context,
     } = schema.parse(
       body,
     );
+    let { context } = schema.parse(body);
+
+    const sessionId = "default-user";
+    const profile = getProfile(sessionId);
+
+    if (profile && profile.preferences) {
+      if (!context) {
+        context = {
+          recentMessages: [],
+          cart: [],
+          lastProducts: [],
+          recipientPreferences: profile.preferences,
+        };
+      } else {
+        context.recipientPreferences = {
+          ...profile.preferences,
+          ...context.recipientPreferences,
+        };
+      }
+    }
 
     const language =
       detectLanguage(
@@ -1557,6 +1582,9 @@ export async function POST(
         if (
           aiResult
         ) {
+          if (aiResult.updatedPreferences) {
+            updateProfile(sessionId, aiResult.updatedPreferences);
+          }
           return NextResponse.json(
             aiResult,
           );
