@@ -192,9 +192,39 @@ During checkout you can customise how your gifts arrive. Choose between standard
 
 ### 📋 Analytics, Observability & A/B Testing
 
-The demo instruments key interactions (message sends, add‑to‑cart actions, voice toggles) into a lightweight client‑side analytics module. A simple dashboard is available at `/analytics` to view event counts and recent activity. Users are randomly assigned to experiment groups “A” or “B” for future testing.
+The demo instruments key interactions (message sends, add‑to‑cart actions, voice toggles) into a lightweight client‑side analytics module. A simple dashboard is available at `/analytics` to view event counts and recent activity. Users are randomly assigned to experiment groups "A" or "B" for future testing.
 
 Furthermore, **Langfuse** is integrated for full LLM observability. This allows us to track OpenAI token costs, trace prompt executions, and monitor how users are interacting with the AI agent in real-time.
+
+### 🕷️ Catalog Scraping
+
+A Playwright-based scraper (`scripts/scrape-kapruka.ts`) pre-scrapes Kapruka's live catalog for the cakes, flowers, and toys categories. It:
+
+* Launches a headless Chromium browser via Playwright
+* Extracts product names, prices, and direct product URLs from each category page
+* Deduplicates results and normalises prices
+* Falls back to a curated dataset if the page structure changes
+* Saves the final output to `data/catalog.json` for downstream indexing
+
+Run the scraper any time to refresh the local catalog:
+
+```bash
+npm run scrape
+```
+
+### 🧠 Semantic Search with Qdrant Vector Database
+
+The scraped catalog is indexed into a **Qdrant** vector database for semantic, embedding-based product search — a layer that sits alongside the live Kapruka MCP tools.
+
+How it works:
+
+* Each product's name and description are embedded using OpenAI's `text-embedding-3-small` model
+* Embeddings are stored as 1536-dimension Cosine vectors in a Qdrant cloud collection
+* At query time, the user's message is embedded and the nearest-neighbour products are retrieved
+* Results are passed through the same allergy and dislike safety-filtering layer before being shown to the user
+* The Qdrant layer gracefully falls back to the live MCP search if the collection is unavailable
+
+This gives the agent a fast, semantically-aware memory of the catalog that complements the real-time Kapruka MCP tools.
 
 ### 🎊 Seasonal themes & Surprise gifts
 
@@ -283,7 +313,9 @@ Checkout creation remains behind an explicit customer-confirmation step.
 * Framer Motion
 * Zustand
 * Zod
-* OpenAI tool calling
+* OpenAI tool calling + Embeddings (`text-embedding-3-small`)
+* Playwright (catalog scraper)
+* Qdrant (vector database / semantic search)
 * Langfuse (LLM Observability)
 * Kapruka MCP
 * Vercel
@@ -326,7 +358,12 @@ OPENAI_MODEL=replace_with_your_working_model_name
 # Langfuse Observability
 LANGFUSE_SECRET_KEY=replace_with_your_langfuse_secret_key
 LANGFUSE_PUBLIC_KEY=replace_with_your_langfuse_public_key
-LANGFUSE_BASE_URL=https://cloud.langfuse.com
+LANGFUSE_BASE_URL=https://us.cloud.langfuse.com
+
+# Qdrant Vector Database (semantic catalog search)
+QDRANT_URL=replace_with_your_qdrant_cluster_url
+QDRANT_API_KEY=replace_with_your_qdrant_api_key
+QDRANT_COLLECTION_NAME=kapruka_catalog
 ```
 
 `OPENAI_API_KEY` is optional. Without it, deterministic handling still supports common product searches, category browsing, delivery lookup, cheaper-option requests, and tracking.
@@ -363,6 +400,8 @@ This project directly addresses key Kapruka Agent Challenge bonus areas:
 🇱🇰 Sinhala & Tamil language support
 🎯 Session-only recipient preferences
 🛡️ Safer recommendations with allergy and dislike filtering
+🕷️ Playwright catalog scraper for gift categories (cakes, flowers, toys) → data/catalog.json
+🧠 Qdrant semantic vector search on scraped catalog (supplements live MCP full-catalog search)
 ```
 
 ## Future Improvements
